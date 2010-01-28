@@ -1,0 +1,5 @@
+{
+    "output_dir": "tmp",
+    "plugins": ["Embedded"],
+    "include_sample": true
+}

@@ -1,0 +1,66 @@
+{
+    "provides": [
+        {
+            "ep": "factory",
+            "name": "commandline",
+            "action": "value",
+            "pointer": "views/cli#cliInputView"
+        },
+        {
+            "ep": "command",
+            "name": "help",
+            "takes": [ "search" ],
+            "preview": "show commands",
+            "description": "The <u>help</u> gives you access to the various commands in the Bespin system.<br/><br/>You can narrow the search of a command by adding an optional search params.<br/><br/>If you pass in the magic <em>hidden</em> parameter, you will find subtle hidden commands.<br/><br/>Finally, pass in the full name of a command and you can get the full description, which you just did to see this!",
+            "completeText": "optionally, narrow down the search",
+            "pointer": "commands#helpCommand"
+        },
+        {
+            "ep": "command",
+            "name": "alias",
+            "takes": [ "alias", "command" ],
+            "preview": "define and show aliases for commands",
+            "completeText": "optionally, add your alias name, and then the command name",
+            "usage": "",
+            "pointer": "commands#aliasCommand"
+        },
+        {
+            "ep": "command",
+            "name": "history",
+            "preview": "Show history of the commands",
+            "pointer": "commands#historyCommand"
+        },
+        {
+            "ep": "choice",
+            "name": "historytimemode",
+            "description": "Display number|date|none next to each historical instruction",
+            "type": "text",
+            "defaultValue": "time"
+        },
+        {
+            "ep": "command",
+            "name": "eval",
+            "takes": [ "js-code" ],
+            "preview": "evals given js code and show the result",
+            "completeText": "evals given js code and show the result",
+            "hidden": true,
+            "pointer": "basiccommands#evalCommand"
+        },
+        {
+            "ep": "command",
+            "name": "version",
+            "takes": [ "command" ],
+            "preview": "show the version for Bespin or a command",
+            "completeText": "optionally, a command name",
+            "hidden": true,
+            "pointer": "basiccommands#versionCommand"
+        },
+        {
+            "ep": "command",
+            "name": "bespin",
+            "preview": "has",
+            "hidden": true,
+            "pointer": "basiccommands#bespinCommand"
+        }
+    ]
+}

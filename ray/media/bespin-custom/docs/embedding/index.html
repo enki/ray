@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8">
+
+	<title>Bespin Embedded Guide</title>
+
+	<link rel="stylesheet" type="text/css" href="../css/reset.css">
+	<link rel="stylesheet" type="text/css" href="../css/stylesheet.css" media="screen,projection">
+	<link rel="stylesheet" type="text/css" href="../css/colorful.css">
+</head>
+<body>
+
+<!-- MAIN CONTAINER -->
+<div id="main-container">
+
+<!-- MENU -->
+<ul id="menu">
+	<li><a href="../index.html" title="Home">Home</a></li>
+	<li><a href="../pluginguide/index.html" title="Plugin Guide">Creating Plugins</a></li>
+	<li class="current"><a href="../embedding/index.html" title="Embedding Bespin in your app">Embedding</a></li>
+	<li><a href="../devguide/index.html" title="Developer's Guide">Developing Bespin</a></li>
+</ul>
+<!-- / MENU -->
+
+<h1 id="web-title">Bespin Embedded Guide</h1>
+<h2 id="web-subtitle">Introduction</h2>
+
+<!-- INDEX PAGE -->
+
+<!-- MAIN COLUMN -->
+<div id="maincol">
+<h1>Important Note</h1>
+<p>The current Bespin Embedded release is a <em>preview release</em>, and the API has
+not yet been finalized. Changes from release-to-release are still possible
+at this stage, and will be noted in the release notes for each release.</p>
+<h1>The Two Flavors of Bespin Embedded</h1>
+<p>Bespin is designed to scale up from simple text area replacement to a 
+full-blown, powerful editing environment. This is accomplished through
+plugins. The Bespin Embedded package comes in two flavors:</p>
+<ul>
+<li>Drop In</li>
+<li>Customizable</li>
+</ul>
+<p>With the Drop In flavor, you get a single .js and a single .css file that you can
+include on your server simply. You don't need anything else to use it.</p>
+<p>With the Customizable flavor, you are able to tailor which plugins are
+installed for use with your Bespin.</p>
+<p>The instructions on this page tell you how to deploy Bespin on your site, and 
+apply regardless of which flavor of Bespin Embedded you're using. If you are
+using the Customizable flavor, you can take a look at the 
+<a href="building.html">building instructions</a> for information on how to change
+what is built into your Bespin.</p>
+<h1>Compressed vs. Uncompressed</h1>
+<p>The Drop In package comes with both compressed and uncompressed JavaScript
+and CSS files. For live site use, you will likely want to use the compressed
+JavaScript because it is <em>much</em> smaller than the uncompressed version.
+If you are trying to troubleshoot a problem, you should use the uncompressed
+version.</p>
+<p><code>BespinEmbedded.js</code> is uncompressed. <code>BespinEmbedded.compressed.js</code> is,
+unsurprisingly, compressed.</p>
+<p>I suggest that you have your HTML refer to BespinEmbedded.js and just put
+the version of the file you need in place at that URL. The examples that
+follow all make the assumption that you're doing just that.</p>
+<h1>How to embed Bespin in your site</h1>
+<h2>Level 1: Upgrade an element</h2>
+<p>The easiest thing to do to get Bespin working on your website is to simply
+include the Bespin script in your page, and mark the elements that you wish to
+use with Bespin with the <code>class="bespin</code> attribute. Download the
+Bespin Embedded release and put these two files on your web server:</p>
+<ul>
+<li>BespinEmbedded.js</li>
+<li>BespinEmbedded.css</li>
+</ul>
+<p>To use Bespin on your page, you would then add lines like the following to
+the &lt;head&gt; element on your page:</p>
+<div class="codehilite"><pre>&lt;link href=&quot;/path/to/BespinEmbedded.css&quot; rel=&quot;stylesheet&quot; 
+  type=&quot;text/css&quot;&gt;
+&lt;script src=&quot;/path/to/BespinEmbedded.js&quot;&gt;&lt;/script&gt;</pre></div>
+
+
+<p>Then, elsewhere on your page, you can transform an element (such as a
+&lt;div&gt; or &lt;textarea&gt;) into a Bespin editor:</p>
+<div class="codehilite"><pre>&lt;div class=&quot;bespin&quot;&gt;Initial contents&lt;/div&gt;</pre></div>
+
+
+<p>There are a number of options to customize how Bespin loads. You can request
+Bespin to use these as follows:</p>
+<div class="codehilite"><pre>&lt;div class=&quot;bespin&quot; data-bespinoptions='{ &quot;stealFocus&quot;:true }'&gt;
+&lt;/div&gt;</pre></div>
+
+
+<p>data-bespinoptions uses a JSON structure (so make sure you <a href="http://json.org/" title="The JSON Spec">follow the rules</a>
+about escaping strings).</p>
+<p>The element to be upgraded does not have to be a div, though there is a known
+issue that other element types such as textarea are not working right now.</p>
+<p>The <a href="bespinoptions.html" title="Start-up option documentation">Bespin startup options</a> are documented elsewhere.</p>
+<p>Bespin does not allow multiple elements in a page to become Bespin editors - 
+there can only be one.</p>
+<h2>Level 2: Manual Upgrade</h2>
+<p>Sometimes the element to upgrade might be dynamically created, or you might want
+to have Bespin as an option that is only loaded when the user selects a 'Use
+Bespin' option. In this case just inserting <code>class="bespin</code> after page load
+won't work, and you'll need to tell Bespin to use an element:</p>
+<div class="codehilite"><pre>&lt;script src=&quot;/path/to/BespinEmbedded.js&quot;&gt;&lt;script&gt;
+&lt;script&gt;
+var embed = tiki.require(&quot;Embedded&quot;);
+var node = document.getElementById(&quot;edit&quot;);
+embed.useBespin(node);
+&lt;/script&gt;
+
+&lt;textarea id=&quot;edit&quot;&gt;Initial contents&lt;/textarea&gt;</pre></div>
+
+
+<p>Rather than passing in a node, you can also simply pass in an string identifier
+as follows:</p>
+<div class="codehilite"><pre>tiki.require(&quot;Embedded&quot;).useBespin(&quot;edit&quot;);</pre></div>
+
+
+<p>And as with level 1 above, you can also use options to customize the display:</p>
+<div class="codehilite"><pre>tiki.require(&quot;Embedded&quot;).useBespin(&quot;edit&quot;, {
+    stealFocus: true
+});</pre></div>
+
+
+<p>Because this is JavaScript, the strict demands of JSON are not applicable here,
+where they are when using data-bespinoptions.</p>
+<h2>The Embedded API</h2>
+<p>It is possible to interact with a Bespin instance on a page, to alter contents
+for example.</p>
+<p>When using manual upgrade of an element, the <code>useBespin()</code> function returns a
+bespin object which can be manipulated as follows:</p>
+<div class="codehilite"><pre>var bespin = embed.useBespin(&quot;edit&quot;);
+bespin.setContent(&quot;Initial Content\nWith 2 lines&quot;);
+bespin.setLineNumber(2);</pre></div>
+
+
+<p>When using element upgrading (with the <code>class="bespin"</code> attribute), you don't
+instantly have access to the Bespin Component. Fortunately, you can get access
+to it fairly easily:</p>
+<div class="codehilite"><pre>&lt;div id=&quot;edit&quot; class=&quot;bespin&quot;&gt;Initial contents&lt;/div&gt;
+&lt;script&gt;
+var bespin = document.getElementById(&quot;edit&quot;).bespin;
+bespin.setContent(&quot;Hello, World!&quot;);
+&lt;/script&gt;</pre></div>
+
+
+<p>The DOM node that contains the editor gets a "bespin" property on it with
+the embedded editor convenience API.</p>
+<h2>Dimensions</h2>
+<p>Bespin always has to know the absolute position and size of the element it's
+contained in. The Bespin code will try to figure out the position of the element
+and keep it updated whenever the window size changes, so normally this all
+occurs behind the scenes and you don't need to worry about it. However, if
+you're altering elements in the DOM through JavaScript in ways that might cause
+the Bespin editor to move around, then you'll need to let Bespin know that its
+position might have changed. You can use the <code>dimensionsChanged()</code> function to
+do this. Pass in the editor object that you received from the <code>useBespin()</code> call
+whenever you programmatically update the absolute position of the editor on the
+page, whether directly (through altering the style of the Bespin element itself)
+or indirectly (through altering the style of some other element that triggers a
+reflow). For example, suppose we have this page:</p>
+<div class="codehilite"><pre>&lt;div id=&quot;box&quot; style=&quot;display: inline-block; width: 100px;&quot;&gt;Hello&lt;/div&gt;
+&lt;div id=&quot;bespin&quot;
+    style=&quot;display: inline-block; width: 640px; height: 480px;&quot;&gt;Bespin&lt;/div&gt;</pre></div>
+
+
+<p>And this JavaScript:</p>
+<div class="codehilite"><pre>bespin = embed.useBespin(&quot;bespin&quot;);</pre></div>
+
+
+<p>Notice that the position of the Bespin editor on the page is determined by the
+width of the box next to it, since both elements have <em>inline-block</em> layout.
+So, if the width of the adjacent box ever changes, <code>dimensionsChanged()</code> will
+need to be called. For example:</p>
+<div class="codehilite"><pre>var box = document.getElementById('box');
+box.style.width = '200px';                  // will cause Bespin to move
+bespin.dimensionsChanged();                 // tell Bespin</pre></div>
+
+
+<h2>Development Mode and onBespinLoad</h2>
+<p>When you use a simple &lt;script&gt; tag to include the Bespin components, you can be
+sure that Bespin is ready for action on page load. However, what happens if you
+are in development mode where the components are loaded asynchronously? Then,
+it's hard to know when Bespin is ready for action. Bespin fires an
+onBespinLoad event when it is ready for action.</p>
+<p>For example:</p>
+<div class="codehilite"><pre>&lt;script&gt;
+window.onBespinLoad = function() {
+    bespin = document.getElementById(&quot;editor&quot;).bespin;
+};
+&lt;input type=&quot;button&quot; value=&quot;Clear Bespin&quot; 
+    onclick=&quot;bespin.setContent('');&quot;&gt;
+&lt;/script&gt;</pre></div>
+
+
+<p>If you are using Bespin via a normal script tag, then you don't need to use the
+onBespinLoad() function.</p>
+</div>
+<!-- / MAIN COLUMN -->
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+
+
+
+
+<h2 class="compact">Contents</h2>
+<ul class="compact">
+<li><a href="index.html">Introduction</a></li>
+<li><a href="building.html">Creating a Custom, Embedded Bespin</a></li>
+<li><a href="bespinoptions.html">Bespin Startup Options</a></li>
+</ul>
+
+
+
+
+
+</div>
+<!-- / SIDEBAR -->
+
+<!-- / MAIN CONTAINER -->
+</div>
+
+<!-- FOOTER -->
+<div id="footer">
+	<!-- COLUMN ONE -->
+	<div>
+	<h2 class="compact">Useful Links</h2>
+	<ul class="compact">
+		<li><a href="http://labs.mozilla.com/bespin/">Bespin project home page</a></li>
+		<li><a href="https://wiki.mozilla.org/Labs/Bespin">Wiki</a></li>
+		<li><a href="https://wiki.mozilla.org/Labs/Bespin/UserGuide">User's Guide</a></li>
+	</ul>
+	</div>
+	<!-- / COLUMN ONE -->
+
+	<!-- COLUMN TWO -->
+	<div>
+	<h2 class="compact">Developer Resources</h2>
+	<ul class="compact">
+	  <li><a href="http://hg.mozilla.org/labs/bespinclient/">Main Code Repository</a></li>
+	  <li><a href="http://hg.mozilla.org/labs/bespinserver/">Python server repository</a></li>
+		<li><a href="http://groups.google.com/group/bespin-core/">bespin-core mailing list for developers</a></li>
+		<li><a href="http://groups.google.com/group/bespin-commits/">bespin-commits mailing list for repository commit messages</a></li>
+		<li><a href="https://bugzilla.mozilla.org/buglist.cgi?product=bespin">Bug List</a></li>
+	</ul>
+	</div>
+	<!-- / COLUMN TWO -->
+
+	<!-- COLUMN THREE -->
+	<div>
+	<h2 class="compact">Get Help</h2>
+	<ul class="compact">
+		<li>The <a href="http://groups.google.com/group/bespin/">Bespin mailing list</a></li>
+		<li>Via IRC: <a href="irc://irc.mozilla.org/bespin">#bespin on irc.mozilla.org</a></li>
+	</ul>
+
+	<h2 class="compact">Documentation Template</h2>
+	<ul class="compact">
+		<li>Adapted from a design by <a href="http://www.mgrabovsky.is-game.com/">Matěj Grabovský</a></li>
+	</ul>
+	</div>
+	<!-- / COLUMN THREE -->
+</div>
+<!-- / FOOTER -->
+
+</body>
+</html>
