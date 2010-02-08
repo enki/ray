@@ -1,5 +1,16 @@
 $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
 
+    setbufferlist: function(buffers) {
+        var ui = this;
+        var select = ui.dom.bufferswitcher.find('select').empty();
+        for (var x in buffers) {
+            var tt = buffers[x].file.path + (buffers[x].modified && ' [+]' || '');
+            $('<option />').data('buffer', buffers[x])
+                .val(buffers[x].file.path).appendTo(select).text(tt);
+        }
+    
+    },
+
     settitle: function(i) {
         var ui = this;
         var tt = i || ui.dom.titlebar.text();
@@ -112,7 +123,8 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
             cursorinfo: $('<span class="ui-ray-buffer-cursorinfo" />'),
             titlebar:   $('<div class="ui-ray-buffer-titlebar" />'),
             settings:   $('<div class="ui-ray-buffer-settings" />'),
-            parserswitcher: $('<select />'),
+            parserswitcher: $('<label class="ui-ray-syntax-selector">Syntax: <select /></label>'),
+            bufferswitcher: $('<label class="ui-ray-buffer-selector">Buffer: <select /></label>'),
         };
 
 
@@ -148,13 +160,17 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
         ui.editor = CodeMirror.replace(ui.textarea.get(0));
         ui.mirror = new CodeMirror(ui.editor, ui.options);
         
-        var s = ui.dom.parserswitcher.appendTo(ui.dom.toolbar)
-                    .bind('change', function(){ 
-                          //$(':selected', this).data('magic').parser
+        var div = $('<div style="float:right;" />').appendTo(ui.dom.toolbar);
+
+        var s = ui.dom.parserswitcher.appendTo(div)
+                    .find('select').bind('change', function(){ 
                           ui.setparser($(':selected', this).data('magic').parser);
                         });
 
-        s.wrap('<label class="ui-ray-syntax-selector">Syntax: </label>');
+        var b = ui.dom.bufferswitcher.appendTo(div)
+                    .find('select').bind('change', function(){ 
+                        ui.element.rayWorkspace('e', $(':selected', this).data('buffer').file);
+                    });
 
         for (var x in ui.options.magic) {
             $('<option>').data('magic', ui.options.magic[x])

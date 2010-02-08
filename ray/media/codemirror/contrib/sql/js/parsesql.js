@@ -1,5 +1,4 @@
 var SqlParser = Editor.Parser = (function() {
-alert('test');
   function wordRegexp(words) {
     return new RegExp("^(?:" + words.join("|") + ")$", "i");
   }

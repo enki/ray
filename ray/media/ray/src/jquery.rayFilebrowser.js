@@ -52,6 +52,16 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
         ui.element.append(ui.dom.filebrowser);
         ui.browse('');
     },
+
+    height: function(h) {
+        var ui = this;
+        if (h) {
+        
+        }
+        else {
+            ui.dom.filebrowser.height();
+        }
+    },
     
     browse: function(path) {
         var ui   = this;
@@ -75,9 +85,16 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
                     var li = $('<li />').appendTo(list);
                     $('<a class="file" href="'+ p +'">'+ obj +'</a>').appendTo(li);
                 });
-                $('.ray-filebrowser-pane').css('height', $('.ray-filebrowser-pane:first').parent().css('height'));
+                var h = 0;
+                $.each($('.ray-filebrowser-pane'),function(){
+                    var nh = $(this).height();
+                    if (h < nh) { h = nh; }
+                });
+                $('.ray-filebrowser-pane').height(h);
                
-                $('#ray-filebrowser:hidden').height(window.innerHeight * 1.61803399 - window.innerHeight).show();
+//                $('#ray-filebrowser:hidden').height(window.innerHeight * 1.61803399 - window.innerHeight).show();
+
+                ui.element.trigger($.Event({type:'redraw'}));
  
             }
         });
@@ -104,7 +121,8 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
 
     open: function() {
         var ui = this;
-        ui.dom.filebrowser.height(180);
+        ui.dom.filebrowser.height(parseInt(window.innerHeight - ((window.innerHeight * 1.61803399) - window.innerHeight)));
+        ui.dom.panes.height(parseInt(window.innerHeight - ((window.innerHeight * 1.61803399) - window.innerHeight)) - 25);
         ui.dom.panes.show();
     },
 
@@ -115,3 +133,6 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
     },
 }));
  
+$.ui.rayFilebrowser.getter = {
+    getter: 'height',
+};

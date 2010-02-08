@@ -77,6 +77,7 @@ $.widget('ui.ray', {
     },
 
     redraw: function() {
+        var ui = this;
         var h = this.notfirstdraw && 58 || 30;
         $('.CodeMirror-wrapping').height(document.documentElement.clientHeight - $('#ray-filebrowser').height() - h);
         this.notfirstdraw = true;
