@@ -128,21 +128,10 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
     
     openFile: function(path) {
         var ui   = this;
-        var base = '/ray/open/';
-        var url  = base + path;
-        $.getJSON(url, function(rs, status){
-            if (status == 'success') {
-                //ui.ws.rayWorkspace('e', );
-                ui.element.trigger($.Event({
-                    type: 'fileOpened',
-                    data: {
-                        path: path.replace('?path=', ''),
-                        syntax: 'html',
-                        content: rs.content,
-                    }
-                }));
-            }
-        });
+        ui.element.trigger($.Event({
+            type: 'fileOpen',
+            data: { path: path.replace('?path=', '') }
+        }));
     },
 
     redraw: function() {

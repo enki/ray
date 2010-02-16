@@ -89,6 +89,7 @@ $.ui.rayBase = {
 $.widget('ui.ray', $.extend($.ui.rayBase, {
     _init: function () {
         var ui = this;
+        ui.options = $.extend($.ui.ray.defaults, ui.options);
         // Initialte all plugins
         ui._plugins_call(function(ns, plugin, lazy) {
             if (!lazy  && ui.element[plugin]) {
@@ -96,8 +97,8 @@ $.widget('ui.ray', $.extend($.ui.rayBase, {
             }
         });
 
-        ui.element.bind('fileOpened', function(e){
-            ui.ws.rayWorkspace('e', e.originalEvent.data);
+        ui.element.bind('fileOpen', function(e){
+            ui.file_open(e.originalEvent.data);
         });
 
         ui.element.bind('redraw', function(e){
@@ -105,6 +106,21 @@ $.widget('ui.ray', $.extend($.ui.rayBase, {
         });
 
         $(window).resize(ui.redraw);
+    },
+
+    file_open: function(file) {
+        var ui   = this;
+        var base = 'open/?path=';
+        var url  = ui.options.base_url + base + file.path;
+        console.log(url);
+        $.getJSON(url, function(rs, status){
+            if (status == 'success') {
+                ui.element.trigger($.Event({
+                    type: 'contentLoaded',
+                    data: { path: file.path, content: rs.content }
+                }));
+            }
+        });
     },
 
     _file_types: {},
@@ -129,7 +145,7 @@ $.widget('ui.ray', $.extend($.ui.rayBase, {
 
 $.extend($.ui.ray, {
     defaults: {
-    
+        base_url: '/ray/'
     },
     // List of plugins (ex: "ns:rayPluginName<:lazy>", where ns refers to the namespace)
     // Lazy means that the plugin is not initialized upon initial load.

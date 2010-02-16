@@ -6,7 +6,10 @@ $.widget('ui.rayWorkspace', {
         ui.dom = {
             workspace: $($.ui.rayWorkspace.defaults.layouts[0].template.join('')).prependTo('body'),
         };
-        //ui.enew(); // must start with a new buffer 
+
+        ui.element.bind('contentLoaded', function (e){
+            ui.e(e.originalEvent.data)
+        });
      },
 
     // New buffer

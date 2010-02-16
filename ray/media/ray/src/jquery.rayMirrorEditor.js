@@ -10,7 +10,7 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
         if (!ui._not_first_run) {
             ui._not_first_run = true;
             $.each(ui.options.magic, function (i, m){
-                ui.element.ray('set_mime_type', {extension: i, type: this.widgetName, label: m.label, callback: 'open'});
+                ui.element.ray('set_mime_type', {extension: i, type: this.widgetName, label: m.label, callback: 'file_open'});
             });
         }
         else {
