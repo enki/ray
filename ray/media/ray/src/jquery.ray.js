@@ -97,13 +97,13 @@ $.widget('ui.ray', $.extend($.ui.rayBase, {
             }
         });
 
-        ui.element.bind('fileOpen', function(e){
-            ui.file_open(e.originalEvent.data);
-        });
-
-        ui.element.bind('redraw', function(e){
-            ui.redraw();
-        });
+        ui.element
+            .bind('fileOpen', function(e){
+                ui.file_open(e.originalEvent.data);
+            })
+            .bind('redraw', function(e){
+                ui.redraw();
+            });
 
         $(window).resize(ui.redraw);
     },
@@ -122,6 +122,8 @@ $.widget('ui.ray', $.extend($.ui.rayBase, {
         });
     },
 
+    // Allow each plugins to specify which file type they support
+    // and how to handle them
     _file_types: {},
     
     set_mime_type: function (i) {

@@ -72,7 +72,8 @@ iframe {
     background:#eee;
 }
 a.file   { background:transparent url(/media/ray/img/page_white_text.png) no-repeat 8px 50%; }
-a.file.opened { color:#269; }
+a.selected { color:#269!important; }
+a.file.opened   { color:#177D19!important; }
 a.dir    { background:transparent url(/media/ray/img/folder.png) no-repeat 8px 50%; }
 a.dir.opened { background:#ffe url(/media/ray/img/folder_open.png) no-repeat 8px 50%; }
 

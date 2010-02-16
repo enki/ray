@@ -26,51 +26,73 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
                         .removeClass('ui-icon-carat-1-n').addClass('ui-icon-carat-1-s');
                     ui.browse('');
                 }
-                ui.element.trigger($.Event({type:'redraw'}));
+                ui.element.trigger('redraw');
             }),
             ui.dom.button.popup.bind('click.rayFilebrowser', function(){
                 console.log('Todo: .. popup mode :|');
             }),
         ]).appendTo(ui.dom.toolbar);
         
-        $('.ray-filebrowser-pane ul li a').live('click', function(e){
-            var url = $(this).attr('href');
-            $(this).addClass('opened').parent().siblings().find('a.dir').removeClass('opened');
-            var next = $(this).parents('.ray-filebrowser-pane').next('.ray-filebrowser-pane');
-            if (next.get(0)) {
-                next.nextAll().remove();
-                next.remove();
-            }
-            if ($(this).hasClass('file')) {
-                ui.openFile(url);
-            }
-            else {
-                ui.dom.pathinfo.text(url.replace('?path=', ''));
-                ui.browse(url);
-            }
-            e.preventDefault();
-            return false;
+        ui.element.bind('redraw.rayFilebrowser', function(e){
+            ui.redraw();
         });
 
         $('.ray-filebrowser-pane ul li a')
+            .live('click', function(e){
+                var link = $(this);
+                var next = $(this).parents('.ray-filebrowser-pane').next('.ray-filebrowser-pane');
+                if (next.get(0)) {
+                    next.nextAll().remove().end().remove();
+                }
+                link.parent().siblings().find('a.dir').removeClass('opened');
+                link.addClass('opened');
+                // Directory
+                if (link.hasClass('dir')) {
+                    ui.dom.pathinfo.text(link.attr('href').replace('?path=', ''));
+                    ui.browse(link.attr('href'));
+                }
+                // File
+                else {
+                    console.log('TODO: load file context infos');
+                    ui.element.trigger('redraw');
+                }
+                e.preventDefault();
+                return false;
+            })
+            .live('dblclick', function(e){
+                e.preventDefault();
+                return false;
+                /*
+                var url = $(this).attr('href');
+                $(this).addClass('opened').parent().siblings().find('a.dir').removeClass('opened');
+                var next = $(this).parents('.ray-filebrowser-pane').next('.ray-filebrowser-pane');
+                if (next.get(0)) {
+                    next.nextAll().remove();
+                    next.remove();
+                }
+                if ($(this).hasClass('file')) {
+                    ui.openFile(url);
+                }
+                else {
+                    ui.dom.pathinfo.text(url.replace('?path=', ''));
+                    ui.browse(url);
+                }
+                */
+            })
             .live('mouseover', function(e){
                 $(this).parent().addClass('ui-state-highlight');
             })
             .live('mouseleave', function(e){
                 $(this).parent().removeClass('ui-state-highlight');
-            })
-            .live('dblclick', function(e){
-                $(this).trigger('click');
-                ui.close();
             });
 
 
 
         // console.log TODO: REMOVE
 //        ui.openFile('?path=blog/base_posts.html');
-        $(window).bind('resize.rayFilebrowser', function(){
-            ui.redraw();
-        });
+//      $(window).bind('resize.rayFilebrowser', function(){
+//          ui.redraw();
+//      });
         ui.dom.filebrowser.append(ui.dom.toolbar, ui.dom.panes);
         ui.element.append(ui.dom.filebrowser);
         //ui._plugins_call(ui, '_init', ['test']);
@@ -82,7 +104,7 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
         var ui = this;
         if (h) {
             ui.dom.filebrowser.height(h);
-            ui.redraw();
+            ui.element.trigger('redraw');
         }
         else {
             ui.dom.filebrowser.height();
@@ -120,8 +142,7 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
                     data: {
                     }
                 }));
-                ui.redraw();
-                ui.element.trigger($.Event({type:'redraw'}));
+                ui.element.trigger('redraw');
             }
         });
     },
@@ -184,8 +205,6 @@ $.plugin = function(namespace, instance) {
 $.plugin('ui.rayFilebrowser.context', $.extend($.ui.rayBase, {
     _init: function() {
         var ui = this;
-
-
         ui.dom = ui.options.widget.dom;
 
         ui.dom.contextTabs = $([
@@ -203,7 +222,7 @@ $.plugin('ui.rayFilebrowser.context', $.extend($.ui.rayBase, {
             ui.redraw();
         });
 
-        ui.element.bind('folderOpened.rayFilebrowser_context', function(e){
+        ui.element.bind('redraw.rayFilebrowser_context', function(e){
             ui.redraw();
         });
     },
@@ -220,6 +239,7 @@ $.plugin('ui.rayFilebrowser.context', $.extend($.ui.rayBase, {
                 .css('margin-left', pw)
                 .width(ui.dom.filebrowser.width() - (pw + panes.length) + 1)
                 .height((panes.height() * 2) - 38);
+
         ui.dom.filebrowser.find('.ui-rayFilebrowser-context .ui-tabs-panel')
                 .height((panes.height() * 2) - 38);
     }
