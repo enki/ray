@@ -10,7 +10,13 @@ body {
     height:100%;
     background:#ddd;
 }
-iframe {background:#eee;border:0; width: 100%; height:100%; display: block;}
+iframe {
+    border:0; 
+    width: 100%; 
+    height:100%; 
+    display: block;
+    background:#333;
+}
 #ray-toolbar {
     margin:0;
     border:1px solid #999;
@@ -40,14 +46,21 @@ iframe {background:#eee;border:0; width: 100%; height:100%; display: block;}
 
 }
 #ray-filebrowser-panes {
-    overflow-y:scroll;
-    overflow-x:hidden;
+    position:fixed;
+    left:0;
+    right:0;
+    margin:0 0 0;
 }
 .ray-filebrowser-pane {
     max-width:400px;
     background:#eee;
     float:left;
+    overflow-y:auto;
+    overflow-x:hidden;
     border-left:1px solid #ddd;
+}
+.ray-filebrowser-pane li {
+    border:1px solid #eee;
 }
 .ray-filebrowser-pane a {
     display:block;
@@ -58,9 +71,41 @@ iframe {background:#eee;border:0; width: 100%; height:100%; display: block;}
     font-family:arial;
     background:#eee;
 }
-a.file   { background:#eee url(/media/ray/img/page_white_text.png) no-repeat 8px 50%; }
-a.dir    { background:#eee url(/media/ray/img/folder.png) no-repeat 8px 50%; }
-a.dir.opened { background:#ffe url(/media/ray/img/folder.png) no-repeat 8px 50%; }
+a.file   { background:transparent url(/media/ray/img/page_white_text.png) no-repeat 8px 50%; }
+a.file.opened { color:#269; }
+a.dir    { background:transparent url(/media/ray/img/folder.png) no-repeat 8px 50%; }
+a.dir.opened { background:#ffe url(/media/ray/img/folder_open.png) no-repeat 8px 50%; }
+
+/* file icons */
+a.file.mp3, 
+a.file.wav  { background:transparent url(/media/ray/fileicons/document_music.png) no-repeat 8px 50%; }
+a.file.xls  { background:transparent url(/media/ray/fileicons/page_excel.png) no-repeat 8px 50%; }
+a.file.pdf  { background:transparent url(/media/ray/fileicons/page_white_acrobat.png) no-repeat 8px 50%; }
+a.file.js   { background:transparent url(/media/ray/fileicons/script_code.png) no-repeat 8px 50%; }
+a.file.as   { background:transparent url(/media/ray/fileicons/page_white_actionscript.png) no-repeat 8px 50%; }
+a.file.cfm  { background:transparent url(/media/ray/fileicons/page_white_coldfusion.png) no-repeat 8px 50%; }
+a.file.zip  { background:transparent url(/media/ray/fileicons/page_white_compressed.png) no-repeat 8px 50%; }
+a.file.sql  { background:transparent url(/media/ray/fileicons/page_white_database.png) no-repeat 8px 50%; }
+a.file.fh   { background:transparent url(/media/ray/fileicons/page_white_freehand.png) no-repeat 8px 50%; }
+a.file.php  { background:transparent url(/media/ray/fileicons/page_white_php.png) no-repeat 8px 50%; }
+a.file.ppt  { background:transparent url(/media/ray/fileicons/page_white_powerpoint.png) no-repeat 8px 50%; }
+a.file.rb   { background:transparent url(/media/ray/fileicons/page_white_ruby.png) no-repeat 8px 50%; }
+a.file.txt  { background:transparent url(/media/ray/fileicons/page_white_text.png) no-repeat 8px 50%; }
+a.file.sh   { background:transparent url(/media/ray/fileicons/script_code.png) no-repeat 8px 50%; }
+a.file.doc  { background:transparent url(/media/ray/fileicons/page_word.png) no-repeat 8px 50%; }
+a.file.py   { background:transparent url(/media/ray/fileicons/page_white_python.png) no-repeat 8px 50%; }
+a.file.ini, a.file.conf { background:transparent url(/media/ray/fileicons/page_white_wrench.png) no-repeat 8px 50%; }
+a.file.gz, a.file.rar,
+a.file.tar, a.file.jar,
+a.file.tgz, a.file.bz2  { background:transparent url(/media/ray/fileicons/page_white_zip.png) no-repeat 8px 50%; }
+a.file.htm, a.file.html { background:transparent url(/media/ray/fileicons/page_white_code.png) no-repeat 8px 50%; }
+a.file.ai, a.file.eps,
+a.file.cdr, a.file.svg  { background:transparent url(/media/ray/fileicons/page_white_vector.png) no-repeat 8px 50%; }
+a.file.jpg, a.file.gif,
+a.file.bmp, a.file.png  { background:transparent url(/media/ray/fileicons/page_white_picture.png) no-repeat 8px 50%; }
+
+
+
 .ray-filebrowser-pane ul {
     margin:0!important;
     padding:0;
@@ -130,4 +175,76 @@ a.dir.opened { background:#ffe url(/media/ray/img/folder.png) no-repeat 8px 50%;
 
 .ui-ray-buffer-selector {
     margin-right:8px;
+}
+
+
+
+/* PLUGINS */
+
+.ui-rayFilebrowser-context {
+    float:left;
+    position:absolute;
+    right:0;
+    left:0;
+}
+
+.ui-rayFilebrowser-context {
+    -moz-border-radius:0!important;
+    -webkit-border-radius:0!important;
+    border:0!important;
+    padding:0!important;
+    border-left:1px solid #ddd!important;
+}
+.ui-rayFilebrowser-context .ui-tabs-nav {
+    -moz-border-radius:0!important;
+    -webkit-border-radius:0!important;
+    border-top:0;
+}
+.ui-rayFilebrowser-context .ui-tabs-nav a {
+    font-size:90%;
+
+}
+.CodeMirror-line-numbers {
+    background:#333!important;
+    border-right:1px solid #444!important;
+    color:#EBDF24;
+}
+
+dl.ui-ray-details {}
+dl.ui-ray-details dt {
+    background:#eee;
+    float:left;
+    width:80px;
+    padding:3px;
+    margin:0 0 1px 0;
+}
+dl.ui-ray-details dd {
+    padding:3px 8px;
+    margin:0 0 1px 88px;
+}
+
+dl a {
+    color:#269!important;
+}
+
+.ui-icon-split-win {
+    background-color:transparent;
+    background-image:url(/media/ray/img/split-none.png)!important;
+    background-repeat:no-repeat;
+    background-position:1px 50%;
+}
+
+
+.ui-ray-svn-log {
+    font-size:90%;
+}
+.ui-ray-svn-log thead th {
+    border-bottom:1px solid #ccc;
+    color:#666;
+}
+.ui-ray-svn-log a {
+    color:#269!important;
+}
+#ui-rayFilebrowser-context-tabs .ui-tabs-panel {
+    overflow-y:auto;
 }

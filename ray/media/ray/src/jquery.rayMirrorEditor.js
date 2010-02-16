@@ -1,4 +1,87 @@
 $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
+    _init: function() {
+        var ui = this;
+        var m, x, wrapper;
+        ui._modified = false;
+        ui.options   = $.extend($.ui.rayMirrorEditor.defaults, ui.options); // What the ?!
+        ui.textarea  = $('<textarea style="width:100%;" class="ui-ray-editor-buffer" />')
+        wrapper      = $('<div />').append(ui.textarea).appendTo(ui.options.parent);
+        
+        if (!ui._not_first_run) {
+            ui._not_first_run = true;
+            $.each(ui.options.magic, function (i, m){
+                ui.element.ray('set_mime_type', {extension: i, type: this.widgetName, label: m.label, callback: 'open'});
+            });
+        }
+        else {
+            ui.dom = {
+                button:   {},
+                toolbar:    $('<div class="ui-widget-header ui-helper-reset ui-helper-clearfix ui-ray-buffer-toolbar" />'),
+                cursorinfo: $('<span class="ui-ray-buffer-cursorinfo" />'),
+                titlebar:   $('<div class="ui-ray-buffer-titlebar" />'),
+                settings:   $('<div class="ui-ray-buffer-settings" />'),
+                parserswitcher: $('<label class="ui-ray-syntax-selector">Syntax: <select /></label>'),
+                bufferswitcher: $('<label class="ui-ray-buffer-selector">Buffer: <select /></label>'),
+            };
+
+
+            $('.ui-ray-toggle-linenumbers').live('change',  function(){ ui.togglelinenumbers(); }).attr('checked', ui.options.linenumbers);
+            $('.ui-ray-toggle-linewrap').live('change',     function(){ ui.togglelinewrap(); }).attr('checked', ui.options.textWrapping);
+            $('.ui-ray-toggle-spellcheck').live('change',   function(){ ui.togglespellcheck(); }).attr('checked', ui.options.disableSpellcheck);
+
+            ui._build_buttons(ui.dom.toolbar);
+
+            ui.options.cursorActivity = function() {
+                ui.element.trigger($.Event({type:'cursorActivity'}));
+                ui._updateCursorInfo();
+            };
+            ui.options.onChange = function() {
+               ui.options.parent.trigger($.Event({type:'changed'}));
+            };
+            ui.options.parent.one('changed.rayMirrorEditor', function(){
+                ui._modified = true;
+                ui.settitle();
+            });
+            
+
+            ui.dom.toolbar.insertBefore(ui.textarea);
+            ui.dom.titlebar.insertBefore(ui.dom.toolbar);
+            ui.dom.cursorinfo.insertBefore(ui.dom.titlebar);
+            ui.dom.settings.html(ui.options.settings.join(''))
+                .hide().insertAfter(ui.dom.toolbar);
+
+            ui.options.initCallback = function(editor) {
+                ui._guess_parser();
+            };
+
+            ui.editor = CodeMirror.replace(ui.textarea.get(0));
+            ui.mirror = new CodeMirror(ui.editor, ui.options);
+            
+            var div = $('<div style="float:right;" />').appendTo(ui.dom.toolbar);
+
+            var s = ui.dom.parserswitcher.appendTo(div)
+                        .find('select').bind('change', function(){ 
+                              ui.setparser($(':selected', this).data('magic').parser);
+                            });
+
+            var b = ui.dom.bufferswitcher.appendTo(div)
+                        .find('select').bind('change', function(){ 
+                            ui.element.rayWorkspace('e', $(':selected', this).data('buffer').file);
+                        });
+
+            for (x in ui.options.magic) {
+                // Add Syntax item to syntax selector
+                //
+               // $('<option>').data('magic', ui.options.magic[x])
+                 //   .val(x).text(ui.options.magic[x].label)
+                   // .appendTo(s);
+            }
+
+            ui.element.trigger($.Event({type:'redraw'}));
+            return ui.textarea;
+        }
+
+    },
 
     setbufferlist: function(buffers) {
         var ui = this;
@@ -61,7 +144,6 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
         ui.options.textWrapping = !ui.options.textWrapping;
         return this.exec('setTextWrapping', ui.options.textWrapping);
     },
-
     togglelinenumbers: function() { 
         var ui = this;
 
@@ -106,81 +188,8 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
             return ui.setparser(ui.options.magic[ext[0]].parser);
         }
         return ui.setparser('DummyParser');
-    },
-
-    _init: function() {
-        var ui = this;
-        ui._modified = false;
-        ui.options   = $.extend($.ui.rayMirrorEditor.defaults, ui.options); // What the ?!
-        ui.textarea  = $('<textarea style="width:100%;" class="ui-ray-editor-buffer" />')
-        var wrapper  = $('<div />').appendTo(ui.options.parent);
-
-        wrapper.append(ui.textarea);
-
-        ui.dom = {
-            button:   {},
-            toolbar:    $('<div class="ui-widget-header ui-helper-reset ui-helper-clearfix ui-ray-buffer-toolbar" />'),
-            cursorinfo: $('<span class="ui-ray-buffer-cursorinfo" />'),
-            titlebar:   $('<div class="ui-ray-buffer-titlebar" />'),
-            settings:   $('<div class="ui-ray-buffer-settings" />'),
-            parserswitcher: $('<label class="ui-ray-syntax-selector">Syntax: <select /></label>'),
-            bufferswitcher: $('<label class="ui-ray-buffer-selector">Buffer: <select /></label>'),
-        };
-
-
-        $('.ui-ray-toggle-linenumbers').live('change',  function(){ ui.togglelinenumbers(); }).attr('checked', ui.options.linenumbers);
-        $('.ui-ray-toggle-linewrap').live('change',     function(){ ui.togglelinewrap(); }).attr('checked', ui.options.textWrapping);
-        $('.ui-ray-toggle-spellcheck').live('change',   function(){ ui.togglespellcheck(); }).attr('checked', ui.options.disableSpellcheck);
-
-        ui._build_buttons(ui.dom.toolbar);
-
-        ui.options.cursorActivity = function() {
-            ui.element.trigger($.Event({type:'cursorActivity'}));
-            ui._updateCursorInfo();
-        };
-        ui.options.onChange = function() {
-           ui.options.parent.trigger($.Event({type:'changed'}));
-        };
-        ui.options.parent.one('changed.rayMirrorEditor', function(){
-            ui._modified = true;
-            ui.settitle();
-        });
-        
-
-        ui.dom.toolbar.insertBefore(ui.textarea);
-        ui.dom.titlebar.insertBefore(ui.dom.toolbar);
-        ui.dom.cursorinfo.insertBefore(ui.dom.titlebar);
-        ui.dom.settings.html(ui.options.settings.join(''))
-            .hide().insertAfter(ui.dom.toolbar);
-
-        ui.options.initCallback = function(editor) {
-            ui._guess_parser();
-        };
-
-        ui.editor = CodeMirror.replace(ui.textarea.get(0));
-        ui.mirror = new CodeMirror(ui.editor, ui.options);
-        
-        var div = $('<div style="float:right;" />').appendTo(ui.dom.toolbar);
-
-        var s = ui.dom.parserswitcher.appendTo(div)
-                    .find('select').bind('change', function(){ 
-                          ui.setparser($(':selected', this).data('magic').parser);
-                        });
-
-        var b = ui.dom.bufferswitcher.appendTo(div)
-                    .find('select').bind('change', function(){ 
-                        ui.element.rayWorkspace('e', $(':selected', this).data('buffer').file);
-                    });
-
-        for (var x in ui.options.magic) {
-            $('<option>').data('magic', ui.options.magic[x])
-                .val(x).text(ui.options.magic[x].label)
-                .appendTo(s);
-        }
-
-        ui.element.trigger($.Event({type:'redraw'}));
-        return ui.textarea;
     }
+
 }));
 $.extend($.ui.rayMirrorEditor, {
     getter: 'exec',
@@ -191,7 +200,7 @@ $.extend($.ui.rayMirrorEditor, {
         undoDelay: 600,
         lineNumbers: false,
         textWrapping: false, // bugs line numbers
-        autoMatchParens: false,
+        autoMatchParens: true,
         disableSpellcheck: true,
         parserfile: [
             "parsedummy.js",
@@ -205,9 +214,14 @@ $.extend($.ui.rayMirrorEditor, {
             "../contrib/php/js/parsephp.js",
             "../contrib/php/js/parsephphtmlmixed.js",
             "../contrib/python/js/parsepython.js",
+//            "../contrib/django/js/tokenizedjango.js",
+//            "../contrib/django/js/parsedjango.js",
+//            "../contrib/django/js/parsedjangohtmlmixed.js",
             "../contrib/diff/js/parsediff.js",
         ],
         stylesheet: [
+            "../ray/color-schemes/evening/scheme.css",
+            /*
             "css/xmlcolors.css", 
             "css/csscolors.css", 
             "css/jscolors.css", 
@@ -215,19 +229,26 @@ $.extend($.ui.rayMirrorEditor, {
             "contrib/php/css/phpcolors.css", 
             "contrib/python/css/pythoncolors.css", 
             "contrib/diff/css/diffcolors.css", 
+            "contrib/django/css/djangocolors.css", 
+            */
         ],
         buttons: [
-            ['editing-options', {label: 'Undo', icon: 'arrowreturn-1-w', callback: 'undo'}, {label: 'Redo', icon: 'arrowreturn-1-e', callback: 'redo'}],
+            ['editing-options', 
+                {label: 'Undo', icon: 'arrowreturn-1-w', callback: 'undo'}, 
+                {label: 'Redo', icon: 'arrowreturn-1-e', callback: 'redo'}
+            ],
             ['buffer-actions',  
                 {label: 'Re-indent', icon: 'signal', callback: 'reindent'},
                 {label: 'Go to line', icon: 'seek-end', callback: 'gotoline'}, 
                 {label: 'Settings', icon: 'gear', callback: 'togglesettings'},
+//                {label: 'Split', icon: 'split-win', callback: 'splitwin'},
 //                {label: 'Syntax', icon: 'gear', callback: 'setsyntax', choices: []},
             ],
         ],
         magic: {
             'dummy': { label: 'No Syntax', parser: 'DummyParser' },
             'html': { label: 'HTML/CSS/JS', parser: 'HTMLMixedParser' },
+//            'html': { label: 'Django template', parser: 'DjangoHTMLMixedParser' },
             'xhtml': { label: 'HTML/CSS/JS', parser: 'HTMLMixedParser' },
             'php':  { label: 'HTML/CSS/JS/PHP', parser: 'PHPHTMLMixedParser' },
             'js':   { label: 'JavaScript', parser: 'JSParser' },

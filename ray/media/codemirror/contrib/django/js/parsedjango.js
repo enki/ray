@@ -1,203 +1,346 @@
-/* Simple parser for Django templates */
+/*
 
-var itag = false;
+Copyright (c) 2009-2010 Maxime Haineault.  All rights reserved.
+The copyrights embodied in the content of this file are licensed by
+Motion Média Inc. under the BSD (revised) open source license
+
+Based on parsexml.js (by ???)
+
+Maxime Haineault <max@motion-m.ca>
+*/
+
+
+
+/* This file defines an XML parser, with a few kludges to make it
+ * useable for HTML. autoSelfClosers defines a set of tag names that
+ * are expected to not have a closing tag, and doNotIndent specifies
+ * the tags inside of which no indentation should happen (see Config
+ * object). These can be disabled by passing the editor an object like
+ * {useHTMLKludges: false} as parserConfig option.
+ */
+
 var DjangoParser = Editor.Parser = (function() {
-  var tokenizeDjango = (function() {
-    function normal(source, setState) {
-      var ch = source.next();
-      if (ch === '{' && source.peek() === "%") {
-        source.next();
-        setState(inTag);
-        return "django-tag";
-      }
-//    else if (ch == "%" && source.peek('}')) {
-//      source.next();
-//      return "django-end-tag";
-//    }
-//    else if (ch == "{" && source.peek('{')) {
-//      source.next();
-//      setState(inVar);
-//      return "django-var";
-//    }
-//    else if (ch == "}" && source.peek('}')) {
-//      source.next();
-//      return "django-end-var";
-//    }
-//      return 'test';
+  var Kludges = {
+    autoSelfClosers: {"br": true, "img": true, "hr": true, "link": true, "input": true,
+                      "meta": true, "col": true, "frame": true, "base": true, "area": true},
+    doNotIndent: {"pre": true, "!cdata": true}
+  };
+  var NoKludges = {autoSelfClosers: {}, doNotIndent: {"!cdata": true}};
+  var UseKludges = Kludges;
+  var alignCDATA = false;
+  var inVar, inBlock = false;
+  var isTag = /[\s\W|]/;
 
-//      if (ch == "%" && source.equals("{")) {
-//        source.nextWhileMatches(/\}/);
-//        return "django-tag";
-//      }
-/*      
-      if (ch == "@") {
-        source.nextWhileMatches(/\w/);
-        return "css-at";
+  // Simple stateful tokenizer for XML documents. Returns a
+  // MochiKit-style iterator, with a state property that contains a
+  // function encapsulating the current state. See tokenize.js.
+  var tokenizeDjango = (function() {
+
+
+    function readBlock(source, setState) {
+        source.nextWhileMatches(/%\}/)
+        console.log('l ', source.get())
+        setState(inText);
+        return 'django-blocktest'
+    }                        
+
+
+
+    function inText(source, setState) {
+      var ch = source.next();
+
+      if (ch == '{') {
+        if (source.equals('%')) {
+            setState(inBlock);
+            return "django-block";
+        }
       }
-      else if (ch == "/" && source.equals("*")) {
-        setState(inCComment);
-        return null;
+      /*
+      else {
+        return 'test'
       }
-      else if (ch == "<" && source.equals("!")) {
-        setState(inSGMLComment);
-        return null;
+      */
+/*
+      // template tag
+      if (ch == '{' && source.equals('%')) {
+        source.next();
+        if (source.peek() == ' ') {
+            source.next();
+        }
+        inBlock = true;
+        return "django-block";
+      }
+      if (inBlock && ch == '}') {
+        inBlock = false;
+        return "django-block";
+      }
+
+      // template filter
+      if (ch == '|' && inBlock || inVar) {
+        source.nextWhileMatches(/\W\s/);
+
+        return "django-variable";
+      }
+
+      // template variable
+      if (ch == '{' && source.equals('{')) {
+        source.next();
+        if (source.peek() == ' ') {
+            source.next();
+        }
+        source.nextWhileMatches(/[\w\._\-]/);
+        setState(inBlock("django-variable", "}}"));
+        inVar = true;
+        return "django-variable";
+      }
+
+      if (inVar && source.equals('}')) {
+        invar = false;
+        return "django-variable";
+      }
+
+
+
+      else {
+        source.nextWhileMatches(/[^&<\n}|]/);
+        return "django-text";
+      }
+      /*
+      if (ch == "%") {
+
+        
+        // template filter
+        else if (source.equals('|')) {
+          setState(inBlock("django-filter", " "));
+        }
+        else if (source.equals("?")) {
+          source.next();
+          source.nextWhileMatches(/[\w\._\-]/);
+          setState(inBlock("django-processing", "?>"));
+          return "django-processing";
+        }
+        else {
+          if (source.equals("/")) source.next();
+          setState(inTag);
+          return "django-punctuation";
+        }
+      }
+      */
+    }
+
+    function inTag(source, setState) {
+      var ch = source.next();
+      console.log('aaa', ch);
+      if (ch == ">") {
+        setState(inText);
+        return "django-punctuation";
+      }
+      else if (/[?\/]/.test(ch) && source.equals(">")) {
+        source.next();
+        setState(inText);
+        return "django-punctuation";
       }
       else if (ch == "=") {
-        return "css-compare";
+        return "django-punctuation";
       }
-      else if (source.equals("=") && (ch == "~" || ch == "|")) {
-        source.next();
-        return "css-compare";
-      }
-      else if (ch == "\"" || ch == "'") {
-        setState(inString(ch));
+      else if (/[\'\"]/.test(ch)) {
+        setState(inAttribute(ch));
         return null;
       }
-      else if (ch == "#") {
-        source.nextWhileMatches(/\w/);
-        return "css-hash";
-      }
-      else if (ch == "!") {
-        source.nextWhileMatches(/[ \t]/);
-        source.nextWhileMatches(/\w/);
-        return "css-important";
-      }
-      else if (/\d/.test(ch)) {
-        source.nextWhileMatches(/[\w.%]/);
-        return "css-unit";
-      }
-      else if (/[,.+>*\/]/.test(ch)) {
-        return "css-select-op";
-      }
-      else if (/[;{}:\[\]]/.test(ch)) {
-        return "css-punctuation";
-      }
       else {
-        source.nextWhileMatches(/[\w\\\-_]/);
-        return "css-identifier";
+        source.nextWhileMatches(/[^\s\u00a0=<>\"\'\/?]/);
+        return "django-name";
       }
-    */
-    }
-    function inTag(source, setState) {
-//      console.log('x-x-x-', source.next())
-      if (source.nextWhileMatches(/block|extends/)) {
-          return "django-in-tag";
-      }
-      else if (source.nextWhileMatches(/\w+/)) {
-          return "django-builtin-tag";
-      }
-      else {
-          while (!source.endOfLine()) {
-            var ch = source.next();
-            if (ch == "%" && source.peek() == '}') {
-                source.next();
-                setState(normal);
-                break;
-            }
-          }
-      }
-    }
-    function inVar(source, setState) {
-      var dashes = 0;
-      while (!source.endOfLine()) {
-        var ch = source.next();
-        if (dashes >= 2 && ch == ">") {
-          setState(normal);
-          break;
-        }
-        dashes = (ch == "-") ? dashes + 1 : 0;
-      }
-      return "django-var";
-    }
-/*
-    function inCComment(source, setState) {
-      var maybeEnd = false;
-      while (!source.endOfLine()) {
-        var ch = source.next();
-        if (maybeEnd && ch == "/") {
-          setState(normal);
-          break;
-        }
-        maybeEnd = (ch == "*");
-      }
-      return "css-comment";
     }
 
-
-    function inString(quote) {
+    function inAttribute(quote) {
       return function(source, setState) {
-        var escaped = false;
         while (!source.endOfLine()) {
-          var ch = source.next();
-          if (ch == quote && !escaped)
+          if (source.next() == quote) {
+            setState(inTag);
             break;
-          escaped = !escaped && ch == "\\";
+          }
         }
-        if (!escaped)
-          setState(normal);
-        return "css-string";
+        return "django-attribute";
       };
     }
-    */
+
+    function inBlock(style, terminator) {
+      return function(source, setState) {
+        while (!source.endOfLine()) {
+          if (source.lookAhead(terminator, true)) {
+            setState(inText);
+            break;
+          }
+          source.next();
+        }
+        return style;
+      };
+    }
 
     return function(source, startState) {
-      return tokenizer(source, startState || normal);
+        console.log('zzzzz ', source);
+      return tokenizer(source, startState || inText);
     };
   })();
 
-//function indentCSS(inBraces, inRule, base) {
-//  return function(nextChars) {
-//    if (!inBraces || /^\}/.test(nextChars)) return base;
-//    else if (inRule) return base + indentUnit * 2;
-//    else return base + indentUnit;
-//  };
-//}
+  // The parser. The structure of this function largely follows that of
+  // parseJavaScript in parsejavascript.js (there is actually a bit more
+  // shared code than I'd like), but it is quite a bit simpler.
+  function parseDjango(source) {
+    var tokens = tokenizeDjango(source), token;
+    var cc = [base];
+    var tokenNr = 0, indented = 0;
+    var currentTag = null, context = null;
+    var consume;
+    
+    function push(fs) {
+      for (var i = fs.length - 1; i >= 0; i--)
+        cc.push(fs[i]);
+    }
+    function cont() {
+      push(arguments);
+      consume = true;
+    }
+    function pass() {
+      push(arguments);
+      consume = false;
+    }
 
-  // This is a very simplistic parser -- since CSS does not really
-  // nest, it works acceptably well, but some nicer colouroing could
-  // be provided with a more complicated parser.
-  function parseDjango(source, basecolumn) {
-    basecolumn = basecolumn || 0;
-    var tokens = tokenizeDjango(source);
-    var inBraces = false, inDjangoFilter = false, inDjangoTag = false;
+    function markErr() {
+      //token.style += " xml-error";
+    }
+    function expect(text) {
+      return function(style, content) {
+        if (content == text) cont();
+        else {markErr(); cont(arguments.callee);}
+      };
+    }
 
-    var iter = {
-      next: function() {
-        var token = tokens.next(), style = token.style, content = token.content;
-        console.log(token, style, content);
-        
-//      if (style == "css-identifier" && inRule)
-//        token.style = "css-value";
-//      if (style == "css-hash")
-//        token.style =  inRule ? "css-colorcode" : "css-identifier";
+    function pushContext(tagname, startOfLine) {
+      var noIndent = UseKludges.doNotIndent.hasOwnProperty(tagname) || (context && context.noIndent);
+      context = {prev: context, name: tagname, indent: indented, startOfLine: startOfLine, noIndent: noIndent};
+    }
+    function popContext() {
+      context = context.prev;
+    }
+    function computeIndentation(baseContext) {
+      return function(nextChars, current) {
+        var context = baseContext;
+        if (context && context.noIndent)
+          return current;
+        if (alignCDATA && /<!\[CDATA\[/.test(nextChars))
+          return 0;
+        if (context && /^<\//.test(nextChars))
+          context = context.prev;
+        while (context && !context.startOfLine)
+          context = context.prev;
+        if (context)
+          return context.indent + indentUnit;
+        else
+          return 0;
+      };
+    }
 
-//        if (content == "\n")
-//          token.indentation = indentCSS(inBraces, inRule, basecolumn);
+    function base() {
+      return pass(element, base);
+    }
+    var harmlessTokens = {"django-text": true, "xml-entity": true, "xml-comment": true, "xml-processing": true};
+    function element(style, content) {
+        console.log('xxx ', style, content);
+      if (content == "{") cont(tagname, attributes, endtag(tokenNr == 1));
+      else if (content == "{%") cont(closetagname, expect("%}"));
+      else if (harmlessTokens.hasOwnProperty(style)) cont();
+      else {markErr(); cont();}
+    }
+    function tagname(style, content) {
+      if (style == "django-name") {
+        currentTag = content.toLowerCase();
+        token.style = "django-tagname";
+        cont();
+      }
+      else {
+        currentTag = null;
+        pass();
+      }
+    }
+    function closetagname(style, content) {
+      if (style == "django-name") {
+        token.style = "django-tagname";
+        if (context && content.toLowerCase() == context.name) popContext();
+        else markErr();
+      }
+      cont();
+    }
+    function endtag(startOfLine) {
+      return function(style, content) {
+        if (content == "/>" || (content == ">" && UseKludges.autoSelfClosers.hasOwnProperty(currentTag))) cont();
+        else if (content == ">") {pushContext(currentTag, startOfLine); cont();}
+        else {markErr(); cont(arguments.callee);}
+      };
+    }
+    function attributes(style) {
+      if (style == "django-name") {token.style = "xml-attname"; cont(attribute, attributes);}
+      else pass();
+    }
+    function attribute(style, content) {
+      if (content == "=") cont(value);
+      else if (content == ">" || content == "/>") pass(endtag);
+      else pass();
+    }
+    function value(style) {
+      if (style == "django-attribute") cont(value);
+      else pass();
+    }
 
-//      if (content == "{")
-//        inBraces = true;
-//      else if (content == "}")
-//        inBraces = inRule = false;
-//      else if (inBraces && content == ";")
-//        inRule = false;
-//      else if (inBraces && style != "css-comment" && style != "whitespace")
-//        inRule = true;
+    return {
+      indentation: function() {return indented;},
 
-        return token;
+      next: function(){
+        token = tokens.next();
+        if (token.style == "whitespace" && tokenNr == 0)
+          indented = token.value.length;
+        else
+          tokenNr++;
+        if (token.content == "\n") {
+          indented = tokenNr = 0;
+          token.indentation = computeIndentation(context);
+        }
+
+        if (token.style == "whitespace" || token.type == "django-comment")
+          return token;
+
+        while(true){
+          consume = false;
+          cc.pop()(token.style, token.content);
+          if (consume) return token;
+        }
       },
 
-      copy: function() {
-        var _inBraces = inBraces, _inDjangoTag = inDjangoTag, _inDjangoFilter = inDjangoFilter, _tokenState = tokens.state;
-        return function(source) {
-          tokens = tokenizeDjango(source, _tokenState);
-          inDjangoTag = _inDjangoTag;
-          inDjangoFilter = _inDjangoFilter;
-          return iter;
+      copy: function(){
+        var _cc = cc.concat([]), _tokenState = tokens.state, _context = context;
+        var parser = this;
+        
+        return function(input){
+          cc = _cc.concat([]);
+          tokenNr = indented = 0;
+          context = _context;
+          tokens = tokenizeDjango(input, _tokenState);
+          return parser;
         };
       }
     };
-    return iter;
   }
 
-  return {make: parseDjango, electricChars: "}"};
+  return {
+    make: parseDjango,
+    electricChars: "/",
+    configure: function(config) {
+      if (config.useHTMLKludges != null)
+        UseKludges = config.useHTMLKludges ? Kludges : NoKludges;
+      if (config.alignCDATA)
+        alignCDATA = config.alignCDATA;
+    }
+  };
 })();
+

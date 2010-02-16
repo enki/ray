@@ -1,0 +1,25 @@
+{% load humanize %}
+
+<dl class="ui-ray-details">
+    
+    <dt>Name</dt>
+    <dd>
+        {{ file.filename }} <small>(<a href="#">rename</a>)</small>
+    </dd>
+    
+    <dt>File size</dt>
+    <dd>{{ file.size }}</dd>
+
+    <dt>Location</dt>
+    <dd>{{ path|default:"&nbsp;" }}</dd>
+
+    <dt>Accessed</dt>
+    <dd>{{ file.atime|naturalday }}</dd>
+
+    <dt>Modified</dt>
+    <dd>{{ file.mtime|naturalday }}</dd>
+
+    <dt>Created</dt>
+    <dd>{{ file.ctime|naturalday }}</dd>
+
+</dl>

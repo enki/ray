@@ -5,8 +5,17 @@ EDITABLE_TEMPLATE_DIR = '/home/h3/www/django-ray-sandbox/sandbox/templates/'
 EDITOR_IGNORE    = ['.svn',]
 # 'props', 'text-base', 'prop-base'
 
-import os, json
+import os, json, time
 from django.http import HttpResponse
+
+def prettySize(size):
+	suffixes = [("B",2**10), ("K",2**20), ("M",2**30), ("G",2**40), ("T",2**50)]
+	for suf, lim in suffixes:
+		if size > lim:
+			continue
+		else:
+			return round(size/float(lim/2**10),2).__str__()+suf
+
 
 
 def json_serve(i):
@@ -17,10 +26,29 @@ def walk(top_dir, ignore=[]):
         dirnames[:] = [dn for dn in dirnames if dn not in ignore]
         yield dirpath, dirnames, filenames
 
+import os
+def ray_svn_log(request):
+    return render_to_response('ray/context/svn-log.html')
+
+def ray_fileinfos(request):
+    if 'path' in request.GET:
+        path = os.path.join(EDITABLE_TEMPLATE_DIR, request.GET['path'])
+        info = os.stat(path)
+        out = {
+            'path': path,
+            'file': {
+                'filename': os.path.basename(path),
+                'size':  prettySize(info.st_size),
+                'mtime': time.ctime(info.st_mtime),
+                'ctime': time.ctime(info.st_ctime),
+                'atime': time.ctime(info.st_atime),
+            }
+        }
+    return render_to_response('ray/context/fileinfos.html', out)
+
 def ray_open(request):
     if 'path' in request.GET:
         path = os.path.join(EDITABLE_TEMPLATE_DIR, request.GET['path'])
-        print path
         fd = open(path, 'r')
         buf = fd.read()
         fd.close()
