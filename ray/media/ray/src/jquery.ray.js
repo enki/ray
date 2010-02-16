@@ -112,7 +112,6 @@ $.widget('ui.ray', $.extend($.ui.rayBase, {
         var ui   = this;
         var base = 'open/?path=';
         var url  = ui.options.base_url + base + file.path;
-        console.log(url);
         $.getJSON(url, function(rs, status){
             if (status == 'success') {
                 ui.element.trigger($.Event({
