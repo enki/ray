@@ -8,8 +8,18 @@
     <script src="/media/ray/src/jquery.rayWorkspace.js" type="text/javascript"></script>
     <script src="/media/ray/src/jquery.rayFilebrowser.js" type="text/javascript"></script>
     <script src="/media/ray/src/jquery.rayPixlr.js" type="text/javascript"></script>
+    <script src="/media/pixlr/_script/pixlr.js" type="text/javascript"></script>
+    <script src="/media/jquery-contextMenu/jquery.contextMenu.js" type="text/javascript"></script>
+    <link  href="/media/jquery-contextMenu/jquery.contextMenu.css" rel="stylesheet" type="text/css" />
     <link  href="/media/ray/css/jquery.ray.css" rel="stylesheet" type="text/css" />
     <link  href="/media/jquery-ui/css/custom-theme/jquery-ui-1.8rc1.custom.css" rel="stylesheet" type="text/css" media="all" />
+	<script type="text/javascript"> 
+		//Global setting edit these
+		pixlr.settings.target = 'http://developer.pixlr.com/save_post_modal.php';
+		pixlr.settings.exit = 'http://developer.pixlr.com/exit_modal.php';
+		pixlr.settings.credentials = true;
+		pixlr.settings.method = 'post';
+	</script>     
     <title>Django Ray Editor</title>
   </head>
   <body style="padding: 20px;">

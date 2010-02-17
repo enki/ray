@@ -44,7 +44,8 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
             ui.browse(e.originalEvent.data.path);
         });
 
-        
+       	$('<ul id="myMenu" class="contextMenu"><li class="edit"><a href="#edit">Edit</a></li><li class="cut separator"><a href="#cut">Cut</a></li><li class="copy"><a href="#copy">Copy</a></li><li class="paste"><a href="#paste">Paste</a></li><li class="delete"><a href="#delete">Delete</a></li><li class="quit separator"><a href="#quit">Quit</a></li></ul>').hide().appendTo('body');
+
         ui.element.bind('dirOpened.rayFilebrowser', function(e){
             var rs, li, pane, list, path;
 
@@ -54,19 +55,28 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
             path = rs.path;
 
             ui.open();
+
             
             // Start by listing directory
             $.each(rs.dirs, function(i, obj) {
-                li = $('<li />').appendTo(list);
-                $('<a class="dir" href="?path='+ rs.base_path + obj + '/">'+ obj +'</a>').appendTo(li);
+                ui._create_link('dir', rs.base_path, obj+'/', obj).appendTo(list);
             });
 
             // Then list files
             $.each(rs.files, function(i, obj) {
-                li = $('<li />').appendTo(list);
-                $('<a class="file" href="'+ rs.base_path + obj +'">'+ obj +'</a>')
-                    .addClass(ui._get_file_extension(obj))
-                    .appendTo(li);
+                ui._create_link('file', rs.base_path, obj, obj).appendTo(list);
+            });
+
+            list.find('li').contextMenu({
+                menu: 'myMenu'
+            },
+                function(action, el, pos) {
+                alert(
+                    'Action: ' + action + '\n\n' +
+                    'Element ID: ' + el + '\n\n' + 
+                    'X: ' + pos.x + '  Y: ' + pos.y + ' (relative to element)\n\n' + 
+                    'X: ' + pos.docX + '  Y: ' + pos.docY+ ' (relative to document)'
+                    );
             });
 
             ui._trigger('redraw');
@@ -176,6 +186,15 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
         
     },
 
+    _create_link: function (type, path, target, label) {
+        var ui = this;
+        var p  = (path + target).replace(/\/\/+/, '/'); // Yeah.. well it works :)
+        if (type == 'file') {
+            type = type + ' '+ ui._get_file_extension(target);
+        }
+        return $('<li><a class="'+ type +'" href="?path='+ path + target + '">'+ label +'</a></li>');
+    },
+
     _set_height: function (h, speed) {
         var ui = this;
         ui.dom.filebrowser.stop().animate({height: h}, speed || 100, function(){
@@ -197,22 +216,9 @@ $.ui.rayFilebrowser = {
     }
 };
 
-$.plugin = function(namespace, instance) {
-    var s  = namespace.split('.');
-    var ns = s[0];
-    var widget = s[1];
-    var plugin = s[2];
-    // Create a widget
-    if (ns && widget && plugin) {
-        jQuery[ns][widget].plugins.push(plugin);
-        $.widget(ns +'.'+ widget +'_'+ plugin, instance);
-    }
-}
-
-/* Gives basic contextual information on selected file or directory
- *
+/* Gives basic contextual information on selected 
+ * file or directory
  * */
-
 
 $.plugin('ui.rayFilebrowser.context', $.extend($.ui.rayBase, {
     _init: function() {
@@ -222,14 +228,13 @@ $.plugin('ui.rayFilebrowser.context', $.extend($.ui.rayBase, {
         ui.dom.contextTabs = $([
             '<div id="ui-rayFilebrowser-context-tabs"><ul>',
                 '<li><a href="/ray/fileinfos/?path=jquery.slugify.js" id="ui-rayFilebrowser_context-general-tab"><span>General</span></a></li>',
-                '<li><a href="/ray/svn/log/?path=base.html"><span>Subversion</span></a></li>',
-                '<li><a href="/ray/fileinfos/?path=jquery.gTimeField.js"><span>Change log</span></a></li>',
+//                '<li><a href="/ray/svn/log/?path=base.html"><span>Subversion</span></a></li>',
+//                '<li><a href="/ray/fileinfos/?path=jquery.gTimeField.js"><span>Change log</span></a></li>',
             '</ul></div>'].join(''));
         
         ui.dom.context = $('<div class="ui-rayFilebrowser-context" />')
                             .appendTo(ui.dom.filebrowser).append(ui.dom.contextTabs).tabs({
                                 load: function (e, data){
-                                console.log($('.ui-ray-details'));
                                     data.path = ui._path;
                                     ui._trigger('contextLoaded', data);
                                 }

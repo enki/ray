@@ -2,8 +2,24 @@
  *
  * For the moment this is a general purpose editor for django
  * aimed at easing live template/static file edition.
- * 
  * */
+
+/* Creates a plugins, which is basically a widget
+ * loosely binded to a parent widget
+ */
+
+$.plugin = function(namespace, instance) {
+    var s  = namespace.split('.');
+    var ns = s[0];
+    var widget = s[1];
+    var plugin = s[2];
+
+    // Create the child widget
+    if (ns && widget && plugin) {
+        jQuery[ns][widget].plugins.push(plugin);
+        $.widget(ns +'.'+ widget +'_'+ plugin, instance);
+    }
+}
 
 $.ui.rayBase = {
 
