@@ -43,7 +43,7 @@ def ray_context(request):
     TODO: document
     '''
     if 'path' in request.GET:
-        path = os.path.join(settings.EDITABLE_TEMPLATE_DIR, request.GET['path'])
+        path = os.path.join(settings.EDITABLE_TEMPLATE_DIR, get_secure_path(request.GET['path']))
         info = os.stat(path)
         out = {
             'path': path,
@@ -62,15 +62,29 @@ def ray_open(request):
     TODO: document
     '''
     if 'path' in request.GET:
-        path = os.path.join(settings.EDITABLE_TEMPLATE_DIR, request.GET['path'])
-        fd = open(path, 'r')
-        buf = fd.read()
-        fd.close()
-        out = {
+        p    = request.GET(request.GET['path'])
+        path = os.path.join(settings.EDITABLE_TEMPLATE_DIR, p)
+        fd   = open(path, 'r')
+        buf  = fd.read()
+        out  = {
             'path': path,
             'content': buf,
         }
+        fd.close()
     return json_serve(out)
+
+def get_secure_path(p):
+    '''
+    TODO: replace gettho security
+    '''
+    if p == '':
+        p = settings.EDITABLE_TEMPLATE_DIR
+    else:
+        if p[0] == '/':
+            p = p[1:]
+    return p.replace('../', '')
+
+
 
 def ray_browse(request):
     '''
@@ -78,7 +92,7 @@ def ray_browse(request):
     '''
     if 'path' in request.GET:
         base_path = request.GET['path']
-        path = os.path.join(settings.EDITABLE_TEMPLATE_DIR, request.GET['path'])
+        path = os.path.join(settings.EDITABLE_TEMPLATE_DIR, get_secure_path(request.GET['path']))
     else:
         base_path = ''
         path = settings.EDITABLE_TEMPLATE_DIR
