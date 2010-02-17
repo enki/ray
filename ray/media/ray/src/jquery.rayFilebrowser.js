@@ -230,9 +230,7 @@ $.plugin('ui.rayFilebrowser.context', $.extend($.ui.rayBase, {
         ui.dom.context.append(ui.dom.contextTabs).tabs();
 
         ui.element.bind('fileSelected.rayFilebrowser_context', function(e){
-                        console.log('test', '/ray/fileinfos/?path='+ e.originalEvent.data.path);
             ui.dom.context.tabs('url', 0, '/ray/fileinfos/?path='+ e.originalEvent.data.path).tabs('load', 0);
-            ui.redraw();
         });
 
         ui.element.bind('redraw.rayFilebrowser_context', function(e){

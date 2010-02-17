@@ -68,7 +68,7 @@ iframe {
     margin-bottom:1px;
     text-decoration:none;
     color:#333;
-    font-family:arial;
+    font-family: Verdana,Arial,sans-serif; 
     background:#eee;
 }
 a.file   { background:transparent url(/media/ray/img/page_white_text.png) no-repeat 8px 50%; }
@@ -133,7 +133,7 @@ a.file.bmp, a.file.png  { background:transparent url(/media/ray/fileicons/page_w
     font-size:12px;
     padding:4px 6px;
     font-weight:bold;
-    font-family:monospace;
+    font-family: Verdana,Arial,sans-serif; 
     height:15px;
 }
 .ui-ray-buffer-toolbar {
@@ -248,4 +248,46 @@ dl a {
 }
 #ui-rayFilebrowser-context-tabs .ui-tabs-panel {
     overflow-y:auto;
+}
+
+
+.CodeMirror-line-numbers  {
+    background:none repeat scroll 0 0 #F4F4F4;
+    border-right:1px solid #DDDDDD;
+    width:30px;
+}
+.CodeMirror-line-numbers div {
+    text-align:right;
+    font-size:10pt;
+    padding:0 5px 0 0;
+    font-family:monospace;
+}
+.editbox {
+    font-family:monospace;
+}
+#ray-toolbar .ui-ray-pathinfo {
+    font-family: Verdana,Arial,sans-serif; 
+    font-size: 1.3em;
+    font-weight:normal;
+    color:#555;
+    margin-left:8px;
+    padding:1px 0 0 0;
+    display:block;
+    float:left;
+}
+#ray-toolbar .ui-button-set {
+    float:right;
+}
+#ray-toolbar .ui-button {
+    height:18px;
+    width:22px;
+}
+.ui-ray-buffer-cursorinfo {
+    float:right;
+    color:#ddd;
+    padding:2px 10px;
+    font-size:150%;
+}
+.ui-ray-syntax-selector {
+    float:right;
 }
