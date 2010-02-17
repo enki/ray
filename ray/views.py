@@ -77,12 +77,15 @@ def ray_browse(request):
     TODO: document
     '''
     if 'path' in request.GET:
+        base_path = request.GET['path']
         path = os.path.join(settings.EDITABLE_TEMPLATE_DIR, request.GET['path'])
     else:
+        base_path = ''
         path = settings.EDITABLE_TEMPLATE_DIR
 
     out = {
         'path':  path,
+        'base_path': base_path,
         'dirs':  [f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))  and f not in settings.EDITOR_IGNORE],
         'files': [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and f not in settings.EDITOR_IGNORE],
     }

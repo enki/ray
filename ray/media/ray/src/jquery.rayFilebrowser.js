@@ -44,24 +44,23 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
             var pane = $('<div class="ray-filebrowser-pane" />').appendTo(ui.dom.panes);
             var list = $('<ul />').appendTo(pane);
             var path = rs.path;
-            console.log(rs); 
             ui.open();
             //pane.data('rs', rs); // still useful ??
             
             // Start by listing directory
             $.each(rs.dirs, function(i, obj) {
-                   console.log(i, obj, path);
-                var p = /\?path=/.test(path) && path + obj + '/' || '?path=' + obj +'/';
                 var li = $('<li />').appendTo(list);
-                $('<a class="dir" href="'+ p +'">'+ obj +'</a>').appendTo(li);
+                $('<a class="dir" href="?path='+ rs.base_path + obj + '/">'+ obj +'</a>').appendTo(li);
             });
+
+            // Then list files
             $.each(rs.files, function(i, obj) {
-                var p = /\?path=/.test(path) && path + obj || '?path=' + obj;
                 var li = $('<li />').appendTo(list);
-                $('<a class="file" href="'+ p +'">'+ obj +'</a>')
-                    .addClass(ui._get_file_extension(p))
+                $('<a class="file" href="'+ rs.base_path + obj +'">'+ obj +'</a>')
+                    .addClass(ui._get_file_extension(obj))
                     .appendTo(li);
             });
+
             ui.element.trigger('redraw');
         });
 
@@ -93,6 +92,7 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
                 var url = $(this).attr('href');
                 
                 if ($(this).hasClass('file')) {
+                    $(this).addClass('opened');
                     ui.element.trigger($.Event({
                         type: 'fileOpen',
                         data: { path: url.replace('?path=', '') }
@@ -103,22 +103,6 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
                 }
                 e.preventDefault();
                 return false;
-                /*
-                var url = $(this).attr('href');
-                $(this).addClass('opened').parent().siblings().find('a.dir').removeClass('opened');
-                var next = $(this).parents('.ray-filebrowser-pane').next('.ray-filebrowser-pane');
-                if (next.get(0)) {
-                    next.nextAll().remove();
-                    next.remove();
-                }
-                if ($(this).hasClass('file')) {
-                    ui.openFile(url);
-                }
-                else {
-                    ui.dom.pathinfo.text(url.replace('?path=', ''));
-                    ui.browse(url);
-                }
-                */
             })
             .live('mouseover', function(e){
                 $(this).parent().addClass('ui-state-highlight');
