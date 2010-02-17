@@ -39,6 +39,11 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
         ui.element.bind('redraw.rayFilebrowser', function(e){
             ui.redraw();
         });
+
+        ui.element.bind('dirSelected.rayFilebrowser', function(e){
+            ui.browse(e.originalEvent.data.path);
+        });
+
         
         ui.element.bind('dirOpened.rayFilebrowser', function(e){
             var rs, li, pane, list, path;
@@ -71,23 +76,23 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
             .live('click', function(e){
                 var link = $(this);
                 var next = $(this).parents('.ray-filebrowser-pane').next('.ray-filebrowser-pane');
-                if (next.get(0)) {
-                    next.nextAll().remove().end().remove();
-                }
-                link.parent().siblings().find('a').removeClass('selected');
-                link.addClass('selected');
+                
+                next.nextAll().remove().end().remove();
+                link.addClass('selected').parent().siblings().find('a').removeClass('selected');
+
                 // Directory
                 if (link.hasClass('dir')) {
                     link.parent().siblings().find('a.dir').removeClass('opened');
                     link.addClass('opened');
-                    ui.dom.pathinfo.text(link.attr('href').replace('?path=', ''));
-                    ui.browse(link.attr('href'));
+                    ui._trigger('dirSelected', {path: link.attr('href')});
                 }
+
                 // File
                 else {
-                    ui._log('TODO: load file context infos');
+                    ui._trigger('fileSelected', {path: link.attr('href')});
                     ui._trigger('redraw');
                 }
+
                 e.preventDefault();
                 return false;
             })
@@ -132,11 +137,9 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
     },
     
     browse: function(path) {
-        var ui   = this;
-        ui._trigger($.Event({
-            type: 'dirOpen',
-            data: { path: path }
-        }));
+        var ui = this;
+        ui.dom.pathinfo.text(path.replace('?path=', ''));
+        ui._trigger('dirOpen', { path: path });
     },
     
     openFile: function(path) {
@@ -226,8 +229,9 @@ $.plugin('ui.rayFilebrowser.context', $.extend($.ui.rayBase, {
         ui.dom.context = $('<div class="ui-rayFilebrowser-context" />').appendTo(ui.dom.filebrowser);
         ui.dom.context.append(ui.dom.contextTabs).tabs();
 
-        ui.element.bind('fileOpened.rayFilebrowser_context', function(e){
-            ui.dom.contextTabs.find('a:first').attr('href', '/ray/fileinfos/?path='+ e.originalEvent.data.path).trigger('click');
+        ui.element.bind('fileSelected.rayFilebrowser_context', function(e){
+                        console.log('test', '/ray/fileinfos/?path='+ e.originalEvent.data.path);
+            ui.dom.context.tabs('url', 0, '/ray/fileinfos/?path='+ e.originalEvent.data.path).tabs('load', 0);
             ui.redraw();
         });
 

@@ -84,7 +84,8 @@ $.widget('ui.rayWorkspace', {
         });
         var title = (bf && bf.modified) && file.path +' [+]' || file.path;
         bf.editor.rayMirrorEditor('settitle', title);
-        bf.editor.rayMirrorEditor('setbufferlist', ui._buffers);
+        //bf.editor.rayMirrorEditor('setbufferlist', ui._buffers);
+        
 
         win.one('changed.rayWorkspace', function(){
             bf.modified = true;

@@ -170,12 +170,16 @@ $.widget('ui.ray', $.extend($.ui.rayBase, {
         var ui   = this;
         var base = '/ray/browse/';
         var url  = base + dir.path;
-        $.getJSON(url, function(rs, status){
-            if (status == 'success') {
-                ui._trigger('dirOpened', { content: rs, path: dir.path, url: url });
-            }
-        });
-              
+
+        if (!ui._loading_dir_list) { // prevent double clicks front fucking up things
+            ui._loading_dir_list = true;
+            $.getJSON(url, function(rs, status){
+                ui._loading_dir_list = false;
+                if (status == 'success') {
+                    ui._trigger('dirOpened', { content: rs, path: dir.path, url: url });
+                }
+            });
+        }
     },
 
     /* Request a file content to the backend and trigger a 

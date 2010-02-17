@@ -101,7 +101,8 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
         else {
             tt = tt.replace(' [+]', '');
         }
-        ui.dom.titlebar.text(tt);
+        //ui.dom.titlebar.text(tt);
+
         document.title = tt;
     },
 
