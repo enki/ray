@@ -1,6 +1,7 @@
 $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
     _init: function() {
         var ui = this;
+
         ui.dom = {
             button: {
                 toggle: ui._button('ray-button-toggle',  'Toggle', 'carat-1-s', 'left'),
@@ -43,12 +44,14 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
             var pane = $('<div class="ray-filebrowser-pane" />').appendTo(ui.dom.panes);
             var list = $('<ul />').appendTo(pane);
             var path = rs.path;
-            
+            console.log(rs); 
             ui.open();
             //pane.data('rs', rs); // still useful ??
+            
+            // Start by listing directory
             $.each(rs.dirs, function(i, obj) {
+                   console.log(i, obj, path);
                 var p = /\?path=/.test(path) && path + obj + '/' || '?path=' + obj +'/';
-
                 var li = $('<li />').appendTo(list);
                 $('<a class="dir" href="'+ p +'">'+ obj +'</a>').appendTo(li);
             });
@@ -69,10 +72,12 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
                 if (next.get(0)) {
                     next.nextAll().remove().end().remove();
                 }
-                link.parent().siblings().find('a.dir').removeClass('opened');
-                link.addClass('opened');
+                link.parent().siblings().find('a').removeClass('selected');
+                link.addClass('selected');
                 // Directory
                 if (link.hasClass('dir')) {
+                    link.parent().siblings().find('a.dir').removeClass('opened');
+                    link.addClass('opened');
                     ui.dom.pathinfo.text(link.attr('href').replace('?path=', ''));
                     ui.browse(link.attr('href'));
                 }
@@ -149,6 +154,7 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
     
     browse: function(path) {
         var ui   = this;
+        console.log('browse: ', path);
         ui.element.trigger($.Event({
             type: 'dirOpen',
             data: { path: path }
