@@ -1,6 +1,8 @@
 $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
     _init: function() {
         var ui = this;
+        
+        ui_opened = false;
 
         ui.dom = {
             button: {
@@ -27,10 +29,10 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
                         .removeClass('ui-icon-carat-1-n').addClass('ui-icon-carat-1-s');
                     ui.browse('');
                 }
-                ui.element.trigger('redraw');
+                ui._trigger('redraw');
             }),
             ui.dom.button.popup.bind('click.rayFilebrowser', function(){
-                console.log('Todo: .. popup mode :|');
+                ui._log('Todo: .. popup mode :|');
             }),
         ]).appendTo(ui.dom.toolbar);
         
@@ -39,29 +41,30 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
         });
         
         ui.element.bind('dirOpened.rayFilebrowser', function(e){
+            var rs, li, pane, list, path;
 
-            var rs = e.originalEvent.data.content;
-            var pane = $('<div class="ray-filebrowser-pane" />').appendTo(ui.dom.panes);
-            var list = $('<ul />').appendTo(pane);
-            var path = rs.path;
+            rs   = e.originalEvent.data.content;
+            pane = $('<div class="ray-filebrowser-pane" />').appendTo(ui.dom.panes);
+            list = $('<ul />').appendTo(pane);
+            path = rs.path;
+
             ui.open();
-            //pane.data('rs', rs); // still useful ??
             
             // Start by listing directory
             $.each(rs.dirs, function(i, obj) {
-                var li = $('<li />').appendTo(list);
+                li = $('<li />').appendTo(list);
                 $('<a class="dir" href="?path='+ rs.base_path + obj + '/">'+ obj +'</a>').appendTo(li);
             });
 
             // Then list files
             $.each(rs.files, function(i, obj) {
-                var li = $('<li />').appendTo(list);
+                li = $('<li />').appendTo(list);
                 $('<a class="file" href="'+ rs.base_path + obj +'">'+ obj +'</a>')
                     .addClass(ui._get_file_extension(obj))
                     .appendTo(li);
             });
 
-            ui.element.trigger('redraw');
+            ui._trigger('redraw');
         });
 
         $('.ray-filebrowser-pane ul li a')
@@ -82,8 +85,8 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
                 }
                 // File
                 else {
-                    console.log('TODO: load file context infos');
-                    ui.element.trigger('redraw');
+                    ui._log('TODO: load file context infos');
+                    ui._trigger('redraw');
                 }
                 e.preventDefault();
                 return false;
@@ -93,7 +96,7 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
                 
                 if ($(this).hasClass('file')) {
                     $(this).addClass('opened');
-                    ui.element.trigger($.Event({
+                    ui._trigger($.Event({
                         type: 'fileOpen',
                         data: { path: url.replace('?path=', '') }
                     }));
@@ -111,17 +114,9 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
                 $(this).parent().removeClass('ui-state-highlight');
             });
 
-
-
-        // console.log TODO: REMOVE
-//        ui.openFile('?path=blog/base_posts.html');
-//      $(window).bind('resize.rayFilebrowser', function(){
-//          ui.redraw();
-//      });
         ui.dom.filebrowser.append(ui.dom.toolbar, ui.dom.panes);
         ui.element.append(ui.dom.filebrowser);
-        //ui._plugins_call(ui, '_init', ['test']);
-        ui._plugin_init()
+        ui._plugin_init();
         ui.browse('');
     },
 
@@ -129,7 +124,7 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
         var ui = this;
         if (h) {
             ui.dom.filebrowser.height(h);
-            ui.element.trigger('redraw');
+            ui._trigger('redraw');
         }
         else {
             ui.dom.filebrowser.height();
@@ -138,8 +133,7 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
     
     browse: function(path) {
         var ui   = this;
-        console.log('browse: ', path);
-        ui.element.trigger($.Event({
+        ui._trigger($.Event({
             type: 'dirOpen',
             data: { path: path }
         }));
@@ -151,22 +145,43 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
 
     redraw: function() {
         var ui = this;
-        var h  = parseInt(window.innerHeight - ((window.innerHeight * 1.61803399) - window.innerHeight));
-        ui.dom.filebrowser.height(h);
-        ui.dom.panes.height(h - 27);
-        $('.ray-filebrowser-pane').height(h - 26);
+        if (ui._opened) {
+            ui._set_height(parseInt(
+                window.innerHeight - // let the ratio be golden..
+                ((window.innerHeight * 1.61803399) - window.innerHeight)
+            ));
+        }
     },
 
     open: function() {
         var ui = this;
-        ui.dom.panes.show();
+        if (!ui._opened) {
+            ui._opened = true;
+            ui.dom.filebrowser.find('> div:not(#ray-toolbar)').show();
+        }
     },
 
     close: function() {
         var ui = this;
-        ui.dom.filebrowser.height(25);
-        ui.dom.panes.hide().empty();
+        
+        if (ui._opened) {
+            ui._opened = false;
+            ui.dom.filebrowser.find('> div:not(#ray-toolbar)').hide();
+            ui.dom.panes.empty();
+            ui._set_height(25);
+        }
+        
     },
+
+    _set_height: function (h, speed) {
+        var ui = this;
+        ui.dom.filebrowser.stop().animate({height: h}, speed || 100, function(){
+            if (h > 25) {
+                ui.dom.panes.height(h - 27).find('.ray-filebrowser-pane').height(h - 26);
+            }
+        });
+    }
+           
 }));
  
 $.ui.rayFilebrowser = {

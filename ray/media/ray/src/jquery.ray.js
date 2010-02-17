@@ -100,9 +100,38 @@ $.ui.rayBase = {
         var tokens = s.split('.');
         return tokens[tokens.length-1] || false;
     },
+
+    _trigger: function(eventName, data) {      
+        var ui = this;
+
+        if (ui.element.ray('option', 'debug')) {
+            ui._log(eventName, data || false);
+        }
+        if (data) {
+            ui.element.trigger($.Event({type: eventName, data: data}));
+        }
+        else {
+            ui.element.trigger(eventName);
+        }
+    },
+
+    _log: function() {
+        alert('Debugging without a console .. you\'re kidding right ?');
+    }
                     
 };
 
+if ( typeof console !== 'undefined' && typeof console.log !== 'undefined') {
+    $.ui.rayBase._log = function () {
+        try { console.log.apply(window, arguments); }
+        // Chrome will shit its pants ..
+        catch (e) {
+            var out = [];
+            for (var x in arguments) { out.push(arguments[x]); }
+            console.log(out.join(', '));
+        }
+    };
+}
 
 $.widget('ui.ray', $.extend($.ui.rayBase, {
     
@@ -113,7 +142,7 @@ $.widget('ui.ray', $.extend($.ui.rayBase, {
     _init: function () {
         var ui = this;
         ui.options = $.extend($.ui.ray.defaults, ui.options);
-
+        //ui._log('teeeeest'); 
         // Bind core events
         ui.element
             .bind('fileOpen.ray', function(e){ ui.file_open(e.originalEvent.data); })
@@ -127,7 +156,9 @@ $.widget('ui.ray', $.extend($.ui.rayBase, {
             }
         });
 
-        $(window).resize(ui.redraw);
+        $(window).resize(function(e){
+            ui._trigger('redraw');
+        });
     },
 
 
@@ -141,10 +172,7 @@ $.widget('ui.ray', $.extend($.ui.rayBase, {
         var url  = base + dir.path;
         $.getJSON(url, function(rs, status){
             if (status == 'success') {
-                ui.element.trigger($.Event({
-                    type: 'dirOpened',
-                    data: { content: rs, path: dir.path, url: url }
-                }));
+                ui._trigger('dirOpened', { content: rs, path: dir.path, url: url });
             }
         });
               
@@ -159,10 +187,7 @@ $.widget('ui.ray', $.extend($.ui.rayBase, {
         var url  = ui.options.base_url + base + file.path;
         $.getJSON(url, function(rs, status){
             if (status == 'success') {
-                ui.element.trigger($.Event({
-                    type: 'contentLoaded',
-                    data: { path: file.path, content: rs.content }
-                }));
+                ui._trigger('contentLoaded', { path: file.path, content: rs.content });
             }
         });
     },
@@ -195,7 +220,8 @@ $.widget('ui.ray', $.extend($.ui.rayBase, {
 
 $.extend($.ui.ray, {
     defaults: {
-        base_url: '/ray/'
+        base_url: '/ray/',
+        debug:    true,
     },
     // List of plugins (ex: "ns:rayPluginName<:lazy>", where ns refers to the namespace)
     // Lazy means that the plugin is not initialized upon initial load.

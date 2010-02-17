@@ -32,7 +32,7 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
             ui._build_buttons(ui.dom.toolbar);
 
             ui.options.cursorActivity = function() {
-                ui.element.trigger($.Event({type:'cursorActivity'}));
+                ui._trigger('cursorActivity');
                 ui._updateCursorInfo();
             };
             ui.options.onChange = function() {
@@ -71,13 +71,11 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
 
             for (x in ui.options.magic) {
                 // Add Syntax item to syntax selector
-                //
-               // $('<option>').data('magic', ui.options.magic[x])
-                 //   .val(x).text(ui.options.magic[x].label)
-                   // .appendTo(s);
+                $('<option>').data('magic', ui.options.magic[x])
+                    .val(x).text(ui.options.magic[x].label)
+                    .appendTo(s);
             }
-
-            ui.element.trigger($.Event({type:'redraw'}));
+            ui._trigger('redraw');
             return ui.textarea;
         }
 
