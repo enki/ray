@@ -226,11 +226,19 @@ $.plugin('ui.rayFilebrowser.context', $.extend($.ui.rayBase, {
                 '<li><a href="/ray/fileinfos/?path=jquery.gTimeField.js"><span>Change log</span></a></li>',
             '</ul></div>'].join(''));
         
-        ui.dom.context = $('<div class="ui-rayFilebrowser-context" />').appendTo(ui.dom.filebrowser);
-        ui.dom.context.append(ui.dom.contextTabs).tabs();
-
-        ui.element.bind('fileSelected.rayFilebrowser_context', function(e){
-            ui.dom.context.tabs('url', 0, '/ray/fileinfos/?path='+ e.originalEvent.data.path).tabs('load', 0);
+        ui.dom.context = $('<div class="ui-rayFilebrowser-context" />')
+                            .appendTo(ui.dom.filebrowser).append(ui.dom.contextTabs).tabs({
+                                load: function (e, data){
+                                console.log($('.ui-ray-details'));
+                                    data.path = ui._path;
+                                    ui._trigger('contextLoaded', data);
+                                }
+                            });
+        
+        ui.element.bind('fileSelected.rayFilebrowser_context, dirSelected.rayFilebrowser_context', function(e){
+            var p = e.originalEvent.data.path.replace('?path=', '');
+            ui.dom.context.tabs('url', 0, '/ray/context/?path='+ p).tabs('load', 0);
+            ui._path = p;
         });
 
         ui.element.bind('redraw.rayFilebrowser_context', function(e){
@@ -243,9 +251,7 @@ $.plugin('ui.rayFilebrowser.context', $.extend($.ui.rayBase, {
         var panes = ui.dom.panes.find('.ray-filebrowser-pane');
 
         panes.each(function(){ pw = pw + $(this).width(); });
-
         ui.dom.panes.width(pw + panes.length);
-        
         ui.dom.context
                 .css('margin-left', pw)
                 .width(ui.dom.filebrowser.width() - (pw + panes.length) + 1)

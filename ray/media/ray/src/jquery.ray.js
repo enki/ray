@@ -181,6 +181,9 @@ $.widget('ui.ray', $.extend($.ui.rayBase, {
             });
         }
     },
+    file_test: function(file) {
+        console.log(file);           
+    },
 
     /* Request a file content to the backend and trigger a 
      * 'contentLoaded' event with result as event.data
@@ -229,7 +232,7 @@ $.extend($.ui.ray, {
     },
     // List of plugins (ex: "ns:rayPluginName<:lazy>", where ns refers to the namespace)
     // Lazy means that the plugin is not initialized upon initial load.
-    plugins: ['ed:rayMirrorEditor', 'ws:rayWorkspace', 'fb:rayFilebrowser'],
+    plugins: ['ed:rayMirrorEditor', 'ws:rayWorkspace', 'fb:rayFilebrowser', 'px:rayPixlr'],
 });
 
 $(function(){

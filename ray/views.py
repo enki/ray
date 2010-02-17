@@ -38,7 +38,7 @@ def ray_svn_log(request):
     '''
     return render_to_response('ray/context/svn-log.html')
 
-def ray_fileinfos(request):
+def ray_context(request):
     '''
     TODO: document
     '''
@@ -48,7 +48,7 @@ def ray_fileinfos(request):
         out = {
             'path': path,
             'file': {
-                'filename': os.path.basename(path),
+                'filename': os.path.basename(path) or os.path.dirname(path),
                 'size':  prettySize(info.st_size),
                 'mtime': time.ctime(info.st_mtime),
                 'ctime': time.ctime(info.st_ctime),
