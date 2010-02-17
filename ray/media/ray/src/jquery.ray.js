@@ -11,6 +11,12 @@ $.ui.rayBase = {
         this.parent = p;
     },
 
+    /* Initialiaze all plugins. This can be confusing at first
+     * since it's almost recursive .. ray has plugins like rayFilebrowser,
+     * rayWorkspace and such .. but plugins themselves can have plugins
+     * that also need initialization. Get it ? :)
+     *
+     * */
     _plugin_init: function () {
         var ui = this;
         var widget, plugin;
@@ -22,6 +28,9 @@ $.ui.rayBase = {
         }
     },
 
+    /* Works like $.each but apply the callback method
+     * to for each plugin with it as context.
+     * */
     _plugins_call: function (method) {
         var ui = this;
         var widget, p;
@@ -32,6 +41,9 @@ $.ui.rayBase = {
         }
     },
 
+
+    /* Create a button widget
+     * */
     _button: function (id, label, icon, corner) {
         return $('<button id="'+ id +'" class="ui-button ui-widget ui-state-default ui-button-icon-only ui-corner-'+ (corner || 'all') +'" role="button" title="'+ label +'">'+
                     '<span class="ui-button-icon-primary ui-icon ui-icon-'+ icon +'"></span><span class="ui-button-text">'+ label +'</span>'+
@@ -40,6 +52,8 @@ $.ui.rayBase = {
              
     //<button class="{button:{icons:{primary:'ui-icon-gear',secondary:'ui-icon-triangle-1-s'}}} ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icons" role="button"><span class="ui-button-icon-primary ui-icon ui-icon-gear"></span><span class="ui-button-text">Button with two icons</span><span class="ui-button-icon-secondary ui-icon ui-icon-triangle-1-s"></span></button>
     
+    /* Create a button set
+     * */
     _buttonSet: function (id, buttons) {
         var bs = $('<span id="'+ id +'" class="ui-button-set" />');
         if (buttons) {
@@ -50,6 +64,9 @@ $.ui.rayBase = {
         return bs.buttonset();
     },
 
+    /* Automatically build buttons according
+     * the the widget's option specifications
+     * */
     _build_buttons: function (appendTo) {
         var ui = this;
 
@@ -78,6 +95,7 @@ $.ui.rayBase = {
         });
     },
 
+    // Return a file extension (ex: "js")
     _get_file_extension: function (s) {
         var tokens = s.split('.');
         return tokens[tokens.length-1] || false;
@@ -87,9 +105,21 @@ $.ui.rayBase = {
 
 
 $.widget('ui.ray', $.extend($.ui.rayBase, {
+    
+    // Allow each plugins to specify which file type they support
+    // and how to handle them
+    _file_types: {},
+
     _init: function () {
         var ui = this;
         ui.options = $.extend($.ui.ray.defaults, ui.options);
+
+        // Bind core events
+        ui.element
+            .bind('fileOpen.ray', function(e){ ui.file_open(e.originalEvent.data); })
+            .bind('dirOpen.ray',  function(e){ ui.dir_list(e.originalEvent.data); })
+            .bind('redraw.ray',  function(e){ ui.redraw(); });
+
         // Initialte all plugins
         ui._plugins_call(function(ns, plugin, lazy) {
             if (!lazy  && ui.element[plugin]) {
@@ -97,17 +127,32 @@ $.widget('ui.ray', $.extend($.ui.rayBase, {
             }
         });
 
-        ui.element
-            .bind('fileOpen', function(e){
-                ui.file_open(e.originalEvent.data);
-            })
-            .bind('redraw', function(e){
-                ui.redraw();
-            });
-
         $(window).resize(ui.redraw);
     },
 
+
+    /* Request a directory listing to the backend and
+     * triger 'dirOpened' event with result as event.data
+     * */
+
+    dir_list: function(dir) {
+        var ui   = this;
+        var base = '/ray/browse/';
+        var url  = base + dir.path;
+        $.getJSON(url, function(rs, status){
+            if (status == 'success') {
+                ui.element.trigger($.Event({
+                    type: 'dirOpened',
+                    data: { content: rs, path: dir.path, url: url }
+                }));
+            }
+        });
+              
+    },
+
+    /* Request a file content to the backend and trigger a 
+     * 'contentLoaded' event with result as event.data
+     * */
     file_open: function(file) {
         var ui   = this;
         var base = 'open/?path=';
@@ -122,10 +167,14 @@ $.widget('ui.ray', $.extend($.ui.rayBase, {
         });
     },
 
-    // Allow each plugins to specify which file type they support
-    // and how to handle them
-    _file_types: {},
-    
+    /* Associate a file type with its handler. The method
+     * accept an object of the following format:
+     * {extension: 'js',            // File extension
+     *  type: 'rayWidgetName',      // Widget handler (ex: rayFilebrowser)
+     *  label: "JavaScript",        // File type label
+     *  callback: 'method_name'}    // Callback method (within the widget)
+     * */
+    // 
     set_mime_type: function (i) {
         this._file_types[i.extension] = i;
     },

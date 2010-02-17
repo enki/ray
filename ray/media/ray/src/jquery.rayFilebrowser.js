@@ -36,6 +36,31 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
         ui.element.bind('redraw.rayFilebrowser', function(e){
             ui.redraw();
         });
+        
+        ui.element.bind('dirOpened.rayFilebrowser', function(e){
+
+            var rs = e.originalEvent.data.content;
+            var pane = $('<div class="ray-filebrowser-pane" />').appendTo(ui.dom.panes);
+            var list = $('<ul />').appendTo(pane);
+            var path = rs.path;
+            
+            ui.open();
+            //pane.data('rs', rs); // still useful ??
+            $.each(rs.dirs, function(i, obj) {
+                var p = /\?path=/.test(path) && path + obj + '/' || '?path=' + obj +'/';
+
+                var li = $('<li />').appendTo(list);
+                $('<a class="dir" href="'+ p +'">'+ obj +'</a>').appendTo(li);
+            });
+            $.each(rs.files, function(i, obj) {
+                var p = /\?path=/.test(path) && path + obj || '?path=' + obj;
+                var li = $('<li />').appendTo(list);
+                $('<a class="file" href="'+ p +'">'+ obj +'</a>')
+                    .addClass(ui._get_file_extension(p))
+                    .appendTo(li);
+            });
+            ui.element.trigger('redraw');
+        });
 
         $('.ray-filebrowser-pane ul li a')
             .live('click', function(e){
@@ -60,6 +85,17 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
                 return false;
             })
             .live('dblclick', function(e){
+                var url = $(this).attr('href');
+                
+                if ($(this).hasClass('file')) {
+                    ui.element.trigger($.Event({
+                        type: 'fileOpen',
+                        data: { path: url.replace('?path=', '') }
+                    }));
+                }
+                else {
+                    $(this).trigger('click');
+                }
                 e.preventDefault();
                 return false;
                 /*
@@ -113,46 +149,14 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
     
     browse: function(path) {
         var ui   = this;
-        var base = '/ray/browse/';
-        var pane = $('<div class="ray-filebrowser-pane" />').appendTo(ui.dom.panes);
-        var list = $('<ul />').appendTo(pane);
-        var url  = base + path;
-        $.getJSON(url, function(rs, status){
-            if (status == 'success') {
-                ui.open();
-                pane.data('rs', rs);
-
-                $.each(rs.dirs, function(i, obj) {
-                    var p = /\?path=/.test(path) && path + obj + '/' || '?path=' + obj +'/';
-
-                    var li = $('<li />').appendTo(list);
-                    $('<a class="dir" href="'+ p +'">'+ obj +'</a>').appendTo(li);
-                });
-                $.each(rs.files, function(i, obj) {
-                    var p = /\?path=/.test(path) && path + obj || '?path=' + obj;
-                    var li = $('<li />').appendTo(list);
-                    $('<a class="file" href="'+ p +'">'+ obj +'</a>')
-                        .addClass(ui._get_file_extension(p))
-                        .appendTo(li);
-                });
-               
-//                $('#ray-filebrowser:hidden').height(window.innerHeight * 1.61803399 - window.innerHeight).show();
-                ui.element.trigger($.Event({
-                    type: 'folderOpened',
-                    data: {
-                    }
-                }));
-                ui.element.trigger('redraw');
-            }
-        });
+        ui.element.trigger($.Event({
+            type: 'dirOpen',
+            data: { path: path }
+        }));
     },
     
     openFile: function(path) {
         var ui   = this;
-        ui.element.trigger($.Event({
-            type: 'fileOpen',
-            data: { path: path.replace('?path=', '') }
-        }));
     },
 
     redraw: function() {
