@@ -253,8 +253,6 @@ $.plugin('ui.rayFilebrowser.context', $.extend($.ui.rayBase, {
     _init: function() {
         var ui = this;
         ui.dom = ui.options.widget.dom;
-        console.log('test');
-
         ui.dom.contextTabs = $([
             '<div id="ui-rayFilebrowser-context-tabs"><ul>',
                 '<li><a href="/ray/fileinfos/?path=jquery.slugify.js" id="ui-rayFilebrowser_context-general-tab"><span>General</span></a></li>',
