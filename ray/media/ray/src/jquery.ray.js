@@ -31,16 +31,18 @@ $.ui.rayBase = {
      * since it's almost recursive .. ray has plugins like rayFilebrowser,
      * rayWorkspace and such .. but plugins themselves can have plugins
      * that also need initialization. Get it ? :)
-     *
      * */
-    _plugin_init: function () {
+    plugin_init: function (widgetName) {
         var ui = this;
-        var widget, plugin;
-        widget = jQuery[ui.namespace][ui.widgetName];
+        var widget, plugin, wn, wdg, opt;
+        wn = widgetName || ui.widgetName;
+        widget = jQuery[ui.namespace][wn];
         for (var x in widget.plugins) {
             plugin = widget.plugins[x];
-            var opt = $.extend((this.options[plugin] || {}), {widget: this});
-            $(ui.element)[this.widgetName +'_'+ plugin](opt);
+            opt = $.extend((this.options[plugin] || {}), {widget: this});
+            wdg = (wn != 'ray') && this.widgetName +'_'+ plugin || plugin.split(':')[0];
+            $(ui.element)[wdg](opt);
+            $(ui.element)[wdg]('plugin_init');
         }
     },
 
@@ -53,7 +55,7 @@ $.ui.rayBase = {
         widget = jQuery[ui.namespace][ui.widgetName];
         for (var x in widget.plugins) {
             p = widget.plugins[x].split(':');
-            method(p[0], p[1], p[2] && true || false);
+            method(p[0], p[1] && true || false);
         }
     },
 
@@ -131,9 +133,7 @@ $.ui.rayBase = {
         }
     },
 
-    _log: function() {
-        alert('Debugging without a console .. you\'re kidding right ?');
-    }
+    _log: function() {}
                     
 };
 
@@ -166,15 +166,20 @@ $.widget('ui.ray', $.extend($.ui.rayBase, {
             .bind('redraw.ray',  function(e){ ui.redraw(); });
 
         // Initialte all plugins
+        ui.plugin_init();
+        /*
         ui._plugins_call(function(ns, plugin, lazy) {
-            if (!lazy  && ui.element[plugin]) {
+            if (!lazy) {
                 ui[ns] = ui.element[plugin]();
             }
         });
 
+        */
         $(window).resize(function(e){
             ui._trigger('redraw');
         });
+
+        
     },
 
 
@@ -198,7 +203,7 @@ $.widget('ui.ray', $.extend($.ui.rayBase, {
         }
     },
     file_test: function(file) {
-        console.log(file);           
+        console.log('aa', file);           
     },
 
     /* Request a file content to the backend and trigger a 
@@ -248,7 +253,7 @@ $.extend($.ui.ray, {
     },
     // List of plugins (ex: "ns:rayPluginName<:lazy>", where ns refers to the namespace)
     // Lazy means that the plugin is not initialized upon initial load.
-    plugins: ['ed:rayMirrorEditor', 'ws:rayWorkspace', 'fb:rayFilebrowser', 'px:rayPixlr'],
+    plugins: ['rayMirrorEditor', 'rayWorkspace', 'rayFilebrowser', 'rayPixlr'],
 });
 
 $(function(){

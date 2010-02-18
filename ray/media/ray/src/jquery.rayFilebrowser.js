@@ -44,7 +44,6 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
             ui.browse(e.originalEvent.data.path);
         });
 
-       	$('<ul id="myMenu" class="contextMenu"><li class="edit"><a href="#edit">Edit</a></li><li class="cut separator"><a href="#cut">Cut</a></li><li class="copy"><a href="#copy">Copy</a></li><li class="paste"><a href="#paste">Paste</a></li><li class="delete"><a href="#delete">Delete</a></li><li class="quit separator"><a href="#quit">Quit</a></li></ul>').hide().appendTo('body');
 
         ui.element.bind('dirOpened.rayFilebrowser', function(e){
             var rs, li, pane, list, path;
@@ -65,18 +64,6 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
             // Then list files
             $.each(rs.files, function(i, obj) {
                 ui._create_link('file', rs.base_path, obj, obj).appendTo(list);
-            });
-
-            list.find('li').contextMenu({
-                menu: 'myMenu'
-            },
-                function(action, el, pos) {
-                alert(
-                    'Action: ' + action + '\n\n' +
-                    'Element ID: ' + el + '\n\n' + 
-                    'X: ' + pos.x + '  Y: ' + pos.y + ' (relative to element)\n\n' + 
-                    'X: ' + pos.docX + '  Y: ' + pos.docY+ ' (relative to document)'
-                    );
             });
 
             ui._trigger('redraw');
@@ -131,7 +118,6 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
 
         ui.dom.filebrowser.append(ui.dom.toolbar, ui.dom.panes);
         ui.element.append(ui.dom.filebrowser);
-        ui._plugin_init();
         ui.browse('');
     },
 
@@ -164,6 +150,17 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
                 ((window.innerHeight * 1.61803399) - window.innerHeight)
             ));
         }
+    },
+
+
+    contextMenu: function() {
+        return [
+            {label: 'Edit', className: 'edit' },
+            {separator: true},
+            {label: 'Copy', className: 'copy' },
+            {label: 'Cut', className: 'cut'},
+            {label: 'Paste', className: 'paste'},
+        ];             
     },
 
     open: function() {
@@ -215,6 +212,38 @@ $.ui.rayFilebrowser = {
         }
     }
 };
+/* Offer contextual menu support for the file browser
+ * (right click menu)
+ * */
+
+$.plugin('ui.rayFilebrowser.contextMenu', $.extend($.ui.rayBase, {
+    _init: function() {
+        var ui = this;
+        
+
+       	$('<ul id="ui-rayFilebrowser-contextMenu" class="contextMenu" />').hide().appendTo('body');
+//          <li class="edit"><a href="#edit">Edit</a></li><li class="cut separator"><a href="#cut">Cut</a></li><li class="copy"><a href="#copy">Copy</a></li><li class="paste"><a href="#paste">Paste</a></li><li class="delete"><a href="#delete">Delete</a></li><li class="quit separator"><a href="#quit">Quit</a></li></ul>');
+        ui.element.bind('dirOpened.rayFilebrowser_contextMenu', function(e){
+            $('a.file, a.dir').parents('li').contextMenu({
+                menu: 'ui-rayFilebrowser-contextMenu'
+            },
+                function(action, el, pos) {
+                alert(
+                    'Action: ' + action + '\n\n' +
+                    'Element ID: ' + el + '\n\n' + 
+                    'X: ' + pos.x + '  Y: ' + pos.y + ' (relative to element)\n\n' + 
+                    'X: ' + pos.docX + '  Y: ' + pos.docY+ ' (relative to document)'
+                    );
+            });
+        });
+        /*
+        */
+    },
+    _menu_item: function() {
+        var link = $('<a />').text(label);
+        return $('<li />').append(link);
+    },
+}));
 
 /* Gives basic contextual information on selected 
  * file or directory
@@ -224,6 +253,7 @@ $.plugin('ui.rayFilebrowser.context', $.extend($.ui.rayBase, {
     _init: function() {
         var ui = this;
         ui.dom = ui.options.widget.dom;
+        console.log('test');
 
         ui.dom.contextTabs = $([
             '<div id="ui-rayFilebrowser-context-tabs"><ul>',
