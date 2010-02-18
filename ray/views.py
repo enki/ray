@@ -62,7 +62,7 @@ def ray_open(request):
     TODO: document
     '''
     if 'path' in request.GET:
-        p    = request.GET(request.GET['path'])
+        p    = request.GET['path']
         path = os.path.join(settings.EDITABLE_TEMPLATE_DIR, p)
         fd   = open(path, 'r')
         buf  = fd.read()

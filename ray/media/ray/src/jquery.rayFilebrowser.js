@@ -152,7 +152,6 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
         }
     },
 
-
     contextMenu: function() {
         return [
             {label: 'Edit', className: 'edit' },
@@ -253,13 +252,7 @@ $.plugin('ui.rayFilebrowser.context', $.extend($.ui.rayBase, {
     _init: function() {
         var ui = this;
         ui.dom = ui.options.widget.dom;
-        ui.dom.contextTabs = $([
-            '<div id="ui-rayFilebrowser-context-tabs"><ul>',
-                '<li><a href="/ray/fileinfos/?path=jquery.slugify.js" id="ui-rayFilebrowser_context-general-tab"><span>General</span></a></li>',
-//                '<li><a href="/ray/svn/log/?path=base.html"><span>Subversion</span></a></li>',
-//                '<li><a href="/ray/fileinfos/?path=jquery.gTimeField.js"><span>Change log</span></a></li>',
-            '</ul></div>'].join(''));
-        
+        ui.dom.contextTabs = $('<div id="ui-rayFilebrowser-context-tabs"><ul /></div>');
         ui.dom.context = $('<div class="ui-rayFilebrowser-context" />')
                             .appendTo(ui.dom.filebrowser).append(ui.dom.contextTabs).tabs({
                                 load: function (e, data){
@@ -270,10 +263,17 @@ $.plugin('ui.rayFilebrowser.context', $.extend($.ui.rayBase, {
         
         ui.element.bind('fileSelected.rayFilebrowser_context, dirSelected.rayFilebrowser_context', function(e){
             var p = e.originalEvent.data.path.replace('?path=', '');
-            ui.dom.context.tabs('url', 0, '/ray/context/?path='+ p).tabs('load', 0);
+            console.log(',,, ', ui.dom.context.tabs('length'));
+
+            if (ui.dom.context.tabs('length') > 0) {
+                ui.dom.context.tabs('url', 0, '/ray/context/?path='+ p).tabs('load', 0);
+            }
+            else {
+                ui.dom.context.tabs('add', '/ray/context/?path='+ p, 'General', 0);
+            }
             ui._path = p;
         });
-
+        
         ui.element.bind('redraw.rayFilebrowser_context', function(e){
             ui.redraw();
         });
@@ -287,7 +287,7 @@ $.plugin('ui.rayFilebrowser.context', $.extend($.ui.rayBase, {
         ui.dom.panes.width(pw + panes.length);
         ui.dom.context
                 .css('margin-left', pw)
-                .width(ui.dom.filebrowser.width() - (pw + panes.length) + 1)
+                .width(ui.dom.filebrowser.width() - (pw + panes.length) - 18)
                 .height((panes.height() * 2) - 38);
 
         ui.dom.filebrowser.find('.ui-rayFilebrowser-context .ui-tabs-panel')
