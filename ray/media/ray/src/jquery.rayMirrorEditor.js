@@ -1,33 +1,78 @@
+var rayBufferManager = function() {
+    var bm  = this;
+    bm._inc = 0;
+    bm._buffers = {};
+
+    return {
+        create: function (f) {
+            var i = bm._inc = bm._inc + 1;
+            return bm._buffers[i] = {
+                id: i, file: f, modified: false,
+                originalContent: f.content
+            };
+        },
+
+        get_or_create: function (f) {
+            var buffer = this.get(f.id);
+            if (!buffer) {
+                buffer = this.create(f);
+            }
+            return buffer;
+        },
+
+        get: function (id) {
+            try {
+                return bm._buffers[id];
+            }
+            catch (e) {
+                return false;
+            };
+        },
+
+        get_by_path: function (k) {
+            var out = false;
+            $.each(bm._buffers, function(i, v){
+                if (v.path == k) { out = v; }
+            })
+            return false;
+        },
+
+        get_id: function (k) {
+            var out = false;
+            $.each(bm._buffers, function(i, v){
+                if (v.path == k) { out = i; }
+            })
+            return false;
+        },
+
+        render: function (k) {
+        }
+    };
+
+};
+
 $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
     _init: function() {
         var ui = this;
         var m, x, wrapper;
         ui._modified = false;
+        ui.buffers = new rayBufferManager();
         ui.options   = $.extend($.ui.rayMirrorEditor.defaults, ui.options); // What the ?!
-        ui.textarea  = $('<textarea style="width:100%;" class="ui-ray-editor-buffer" />')
-        wrapper      = $('<div />').append(ui.textarea).appendTo(ui.options.parent);
         
-        if (!ui._not_first_run) {
-            ui._not_first_run = true;
-            $.each(ui.options.magic, function (i, m){
-                ui.element.ray('set_mime_type', {extension: i, type: this.widgetName, label: m.label, callback: 'file_open'});
-            });
-        }
-        else {
+        if (ui._not_first_run) {
             ui.dom = {
                 button:   {},
                 toolbar:    $('<div class="ui-widget-header ui-helper-reset ui-helper-clearfix ui-ray-buffer-toolbar" />'),
                 cursorinfo: $('<span class="ui-ray-buffer-cursorinfo" />'),
                 titlebar:   $('<div class="ui-ray-buffer-titlebar" />'),
-                settings:   $('<div class="ui-ray-buffer-settings" />'),
                 parserswitcher: $('<label class="ui-ray-syntax-selector">Syntax: <select /></label>'),
                 bufferswitcher: $('<label class="ui-ray-buffer-selector">Buffer: <select /></label>'),
             };
 
 
-            $('.ui-ray-toggle-linenumbers').live('change',  function(){ ui.togglelinenumbers(); }).attr('checked', ui.options.linenumbers);
-            $('.ui-ray-toggle-linewrap').live('change',     function(){ ui.togglelinewrap(); }).attr('checked', ui.options.textWrapping);
-            $('.ui-ray-toggle-spellcheck').live('change',   function(){ ui.togglespellcheck(); }).attr('checked', ui.options.disableSpellcheck);
+//            $('.ui-ray-toggle-linenumbers').live('change',  function(){ ui.togglelinenumbers(); }).attr('checked', ui.options.linenumbers);
+//            $('.ui-ray-toggle-linewrap').live('change',     function(){ ui.togglelinewrap(); }).attr('checked', ui.options.textWrapping);
+//            $('.ui-ray-toggle-spellcheck').live('change',   function(){ ui.togglespellcheck(); }).attr('checked', ui.options.disableSpellcheck);
 
             ui._build_buttons(ui.dom.toolbar);
 
@@ -43,16 +88,23 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
                 ui.settitle();
             });
             
+            ui.element.rayWorkspace('load', 'north', [
+                ui.dom.cursorinfo, ui.dom.titlebar, ui.dom.toolbar
+            ]);
 
-            ui.dom.toolbar.insertBefore(ui.textarea);
-            ui.dom.titlebar.insertBefore(ui.dom.toolbar);
-            ui.dom.cursorinfo.insertBefore(ui.dom.titlebar);
-            ui.dom.settings.html(ui.options.settings.join(''))
-                .hide().insertAfter(ui.dom.toolbar);
+            //ui.dom.toolbar.insertBefore(ui.textarea);
+            //ui.dom.titlebar.insertBefore(ui.dom.toolbar);
+//          ui.dom.settings.html(ui.options.settings.join(''))
+//              .hide().insertAfter(ui.dom.toolbar);
 
             ui.options.initCallback = function(editor) {
                 ui._guess_parser();
             };
+
+            ui.textarea  = $('<textarea style="width:100%;height:100px;" class="ui-ray-editor-buffer" />')
+            wrapper      = ui.options.parent.append(ui.textarea).height(101);
+            console.log('aaa', ui.options.parent);
+            //ui.textarea.height(ui.options.parent.height()).parent().height(ui.options.parent.height());
 
             ui.editor = CodeMirror.replace(ui.textarea.get(0));
             ui.mirror = new CodeMirror(ui.editor, ui.options);
@@ -75,10 +127,57 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
                     .val(x).text(ui.options.magic[x].label)
                     .appendTo(s);
             }
+
+            ui.element.rayWorkspace('exec', 'open', 'north');
+
             ui._trigger('redraw');
             return ui.textarea;
         }
+        else {
+            ui._not_first_run = true;
+            $.each(ui.options.magic, function (i, m){
+                ui.element.ray('set_mime_type', {extension: i, type: this.widgetName, label: m.label, callback: 'file_open'});
+            });
+            ui.element.bind('contentLoaded', function (e){
+                ui.e(e.originalEvent.data)
+            });
+        }
 
+    },
+
+    // New buffer from file
+    e: function(file) {
+        var ui  = this;
+        var buf = ui.buffers.get_or_create(file);
+
+        var win = $('<div class="ui-ray-editor-wrapper" style="height:100px;" />');
+        ui.element.rayWorkspace('load', 'center', win);
+        buf.editor = ui.element.rayMirrorEditor({
+            content: file.content || '',
+            parent: win,
+            file: file
+        });
+        var title = (buf && buf.modified) && file.path +' [+]' || file.path;
+        buf.editor.rayMirrorEditor('settitle', title);
+        win.one('changed.rayWorkspace', function(){
+            buff.modified = true;
+        });
+        /*
+        // Do not load the same file twice
+        if (!rs) {
+
+            if (win.data('buffer')) {
+                var nb = win.data('buffer'); // new buffer
+                var ob = ui._get_buffer_by_id(win.data('buffer').id); // old buffer
+                var history = nb.editor.rayMirrorEditor('exec', 'historySize');
+                if (history.redo !== 0 || history.undo !==0) {
+                    ob.file.content = nb.editor.rayMirrorEditor('exec', 'getCode');
+                    ob.modified = true;
+                }
+            }
+            win.data('buffer', bf);
+        }
+        */
     },
 
     setbufferlist: function(buffers) {
@@ -219,8 +318,9 @@ $.extend($.ui.rayMirrorEditor, {
             "../contrib/diff/js/parsediff.js",
         ],
         stylesheet: [
-            "../ray/color-schemes/evening/scheme.css",
             /*
+            "../ray/color-schemes/evening/scheme.css",
+            */
             "css/xmlcolors.css", 
             "css/csscolors.css", 
             "css/jscolors.css", 
@@ -229,7 +329,6 @@ $.extend($.ui.rayMirrorEditor, {
             "contrib/python/css/pythoncolors.css", 
             "contrib/diff/css/diffcolors.css", 
             "contrib/django/css/djangocolors.css", 
-            */
         ],
         buttons: [
             ['editing-options', 
@@ -260,19 +359,7 @@ $.extend($.ui.rayMirrorEditor, {
 //                stylesheet: ["css/xmlcolors.css", "css/jscolors.css", "css/csscolors.css", "css/djangocolors.css"] },
 
     },
-        settings: [
-            '<ul class="ui-ray-form">',
-                '<li><input type="checkbox" checked="checked" class="ui-ray-toggle-linenumbers" /> Line numbers</li>',
-                '<li><input type="checkbox" checked="checked" class="ui-ray-toggle-linewrap" /> Line wrap (does not play well with line numbers ..)</li>',
-                '<li><input type="checkbox" checked="checked" class="ui-ray-toggle-spellcheck" /> Disable spell checking (Mozilla Firefox 2+ only)</li>',
-            '</ul>',
-        ],
-//      
-//      activeTokens: function(spanNode, tokenObject, editor){
-//                        console.log(spanNode, tokenObject, editor);
-//                
-//                }
-    }
+}
 });
 
 /*

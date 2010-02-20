@@ -23,10 +23,6 @@ $.plugin = function(namespace, instance) {
 
 $.ui.rayBase = {
 
-    setParent: function (p) {
-        this.parent = p;
-    },
-
     /* Initialiaze all plugins. This can be confusing at first
      * since it's almost recursive .. ray has plugins like rayFilebrowser,
      * rayWorkspace and such .. but plugins themselves can have plugins
@@ -157,8 +153,9 @@ $.widget('ui.ray', $.extend($.ui.rayBase, {
 
     _init: function () {
         var ui = this;
+        
         ui.options = $.extend($.ui.ray.defaults, ui.options);
-        //ui._log('teeeeest'); 
+
         // Bind core events
         ui.element
             .bind('fileOpen.ray', function(e){ ui.file_open(e.originalEvent.data); })
@@ -167,19 +164,10 @@ $.widget('ui.ray', $.extend($.ui.rayBase, {
 
         // Initialte all plugins
         ui.plugin_init();
-        /*
-        ui._plugins_call(function(ns, plugin, lazy) {
-            if (!lazy) {
-                ui[ns] = ui.element[plugin]();
-            }
-        });
 
-        */
         $(window).resize(function(e){
             ui._trigger('redraw');
         });
-
-        
     },
 
 
@@ -249,11 +237,11 @@ $.widget('ui.ray', $.extend($.ui.rayBase, {
 $.extend($.ui.ray, {
     defaults: {
         base_url: '/ray/',
-        debug:    true,
+        debug:    false,
     },
     // List of plugins (ex: "ns:rayPluginName<:lazy>", where ns refers to the namespace)
     // Lazy means that the plugin is not initialized upon initial load.
-    plugins: ['rayMirrorEditor', 'rayWorkspace', 'rayFilebrowser', 'rayPixlr'],
+    plugins: ['rayMirrorEditor', 'rayWorkspace', 'rayFilebrowser'],//, 'rayPixlr'],
 });
 
 $(function(){
