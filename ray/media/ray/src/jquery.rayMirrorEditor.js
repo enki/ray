@@ -6,8 +6,7 @@ var rayBufferManager = function() {
     return {
 
         // Focus a specified buffer takes a buffer object as argument
-        focus: function(b) {
-            var buffer = this.get(b);
+        focus: function(buffer) {
             this.invoke(function(i, b){
                 b.has_focus = (b.id === buffer.id) && true || false;
             });
@@ -175,15 +174,12 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
 
     // New buffer from file
     e: function(file) {
-        var ui  = this;
-        var buf = ui.buffers.getOrCreate(file);
+        var ui = this;
+        var bf = ui.buffers.getOrCreate(file);
 
-        ui.render(buf);
+        ui.render(bf);
 
         /*
-        // Do not load the same file twice
-        if (!rs) {
-
             if (win.data('buffer')) {
                 var nb = win.data('buffer'); // new buffer
                 var ob = ui._get_buffer_by_id(win.data('buffer').id); // old buffer
@@ -193,7 +189,6 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
                     ob.modified = true;
                 }
             }
-            win.data('buffer', bf);
         }
         */
     },
