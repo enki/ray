@@ -4,23 +4,57 @@ var rayBufferManager = function() {
     bm._buffers = {};
 
     return {
+
+        // Focus a specified buffer takes a buffer object as argument
+        focus: function(b) {
+            var buffer = this.get(b);
+            this.invoke(function(i, b){
+                b.has_focus = (b.id === buffer.id) && true || false;
+            });
+        },
+
+        // Invoke a callback method on all buffers
+        invoke: function (method) {
+            return $.each(bm._buffers, method);
+        },
+
+        // Returns all buffers
+        all: function () {
+            return bm._buffers;
+        },
+
+        // Creates a new buffer, takes file argument
         create: function (f) {
             var i = bm._inc = bm._inc + 1;
-            return bm._buffers[i] = {
+            bm._buffers[i] = {
                 id: i, file: f, modified: false,
                 originalContent: f.content
             };
+            return bm._buffers[i];
         },
 
-        get_or_create: function (f) {
-            var buffer = this.get(f.id);
+        // Takes a files argument and return its associated buffer, if none exist
+        // it creates it and returns the created buffer
+        getOrCreate: function (f) {
+            var buffer = this.getByPath(f.path);
             if (!buffer) {
                 buffer = this.create(f);
+                buffer.created = true;
             }
+            else {
+                buffer.created = false;
+            }
+            this.focus(buffer);
             return buffer;
         },
 
-        get: function (id) {
+        // Takes either a file or a id and returns the buffer associated with it
+        get: function (b) {
+            return b.path && this.getByPath(b.file.path) || this.getById(b);
+        },
+
+        // Returns a buffer that matches a given id
+        getById: function(id) {
             try {
                 return bm._buffers[id];
             }
@@ -29,26 +63,29 @@ var rayBufferManager = function() {
             };
         },
 
-        get_by_path: function (k) {
+        // Returns a buffer that matches a given path 
+        getByPath: function (p) {
             var out = false;
             $.each(bm._buffers, function(i, v){
-                if (v.path == k) { out = v; }
-            })
-            return false;
+                if (v.file.path == p) { out = v; }
+            });
+            return out;
         },
 
-        get_id: function (k) {
+        // Returns the buffer that is currently focused.
+        getFocused: function() {
+            return this.getByProperty('has_focus', true);
+        },
+
+        // Find a buffer that has a given property that matches a given value
+        getByProperty: function (p, v) {
             var out = false;
             $.each(bm._buffers, function(i, v){
-                if (v.path == k) { out = i; }
-            })
-            return false;
-        },
-
-        render: function (k) {
+                if (p === v) { return out = v; }
+            });
+            return out;
         }
     };
-
 };
 
 $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
@@ -69,17 +106,13 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
                 bufferswitcher: $('<label class="ui-ray-buffer-selector">Buffer: <select /></label>'),
             };
 
-
-//            $('.ui-ray-toggle-linenumbers').live('change',  function(){ ui.togglelinenumbers(); }).attr('checked', ui.options.linenumbers);
-//            $('.ui-ray-toggle-linewrap').live('change',     function(){ ui.togglelinewrap(); }).attr('checked', ui.options.textWrapping);
-//            $('.ui-ray-toggle-spellcheck').live('change',   function(){ ui.togglespellcheck(); }).attr('checked', ui.options.disableSpellcheck);
-
             ui._build_buttons(ui.dom.toolbar);
 
             ui.options.cursorActivity = function() {
                 ui._trigger('cursorActivity');
                 ui._updateCursorInfo();
             };
+
             ui.options.onChange = function() {
                ui.options.parent.trigger($.Event({type:'changed'}));
             };
@@ -87,23 +120,18 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
                 ui._modified = true;
                 ui.settitle();
             });
+
+            ui.options.initCallback = function(editor) {
+                ui._guess_parser();
+            };
             
             ui.element.rayWorkspace('load', 'north', [
                 ui.dom.cursorinfo, ui.dom.titlebar, ui.dom.toolbar
             ]);
 
-            //ui.dom.toolbar.insertBefore(ui.textarea);
-            //ui.dom.titlebar.insertBefore(ui.dom.toolbar);
-//          ui.dom.settings.html(ui.options.settings.join(''))
-//              .hide().insertAfter(ui.dom.toolbar);
-
-            ui.options.initCallback = function(editor) {
-                ui._guess_parser();
-            };
-
             ui.textarea  = $('<textarea style="width:100%;height:100px;" class="ui-ray-editor-buffer" />')
             wrapper      = ui.options.parent.append(ui.textarea).height(101);
-            console.log('aaa', ui.options.parent);
+            
             //ui.textarea.height(ui.options.parent.height()).parent().height(ui.options.parent.height());
 
             ui.editor = CodeMirror.replace(ui.textarea.get(0));
@@ -148,20 +176,10 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
     // New buffer from file
     e: function(file) {
         var ui  = this;
-        var buf = ui.buffers.get_or_create(file);
+        var buf = ui.buffers.getOrCreate(file);
 
-        var win = $('<div class="ui-ray-editor-wrapper" style="height:100px;" />');
-        ui.element.rayWorkspace('load', 'center', win);
-        buf.editor = ui.element.rayMirrorEditor({
-            content: file.content || '',
-            parent: win,
-            file: file
-        });
-        var title = (buf && buf.modified) && file.path +' [+]' || file.path;
-        buf.editor.rayMirrorEditor('settitle', title);
-        win.one('changed.rayWorkspace', function(){
-            buff.modified = true;
-        });
+        ui.render(buf);
+
         /*
         // Do not load the same file twice
         if (!rs) {
@@ -179,11 +197,53 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
         }
         */
     },
+    // New buffer
+    enew: function() {
+
+//      var ui = this;
+//      var w  = $('.ui-ray-workspace-window.active');
+//      console.log('aaa', w);
+//      if (!w.get(0)) {
+//          console.log('asti');
+//          w = $('<div class="ui-ray-workspace-window active" />').appendTo('.ui-ray-workspace.active');
+//      }
+//      ui._initializeEditor(w);
+    },
+    // Delete buffer
+    bd: function() {},
+    // Next buffer
+    bn: function() {},
+    // Previous buffer
+    bp: function() {},
+    // Write buffer
+    w: function(ws) {},
+    ls: function() {
+        //this._buffers_apply(console.log);
+    },
+    render: function (buf) {
+        var ui = this;
+        var ws = ui.element.rayWorkspace('getWorkspace', 'center');
+        
+        buf.editor = ui.element.rayMirrorEditor({
+            content: buf.file.content || '',
+            parent: ws,
+//            file: file
+        });
+//         buf.editor.rayMirrorEditor('setbufferlist', ui.buffers.all());
+//            var title = (buf && buf.modified) && file.path +' [+]' || file.path;
+//
+//            buf.editor.rayMirrorEditor('settitle', title);
+//            win.one('changed.rayWorkspace', function(){
+//                buff.modified = true;
+//            });
+    },
 
     setbufferlist: function(buffers) {
         var ui = this;
         var select = ui.dom.bufferswitcher.find('select').empty();
+        console.log(buffers)
         for (var x in buffers) {
+            console.log('zzz ', buffers[x])
             var tt = buffers[x].file.path + (buffers[x].modified && ' [+]' || '');
             $('<option />').data('buffer', buffers[x])
                 .val(buffers[x].file.path).appendTo(select).text(tt);
@@ -281,7 +341,8 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
 
     _guess_parser: function() {
         var ui  = this;
-        var ext = ui.options.file.path.match(/\w+$/);
+//        var ext = ui.options.file.path.match(/\w+$/);
+        var ext = 'html';
         if (ext[0] && ui.options.magic[ext[0].toLowerCase()]) {
             return ui.setparser(ui.options.magic[ext[0]].parser);
         }

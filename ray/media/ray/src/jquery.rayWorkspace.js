@@ -13,9 +13,17 @@ $.widget('ui.rayWorkspace', {
         }
     },
 
+    getWorkspace: function(ws) {
+        try {
+            return this.dom[ws];
+        }
+        catch (e) {
+            return false;
+        }
+    },
+
     exec: function(cmd, arg) {
         var ui = this;
-        console.log(cmd, arg, ui.instance[cmd](arg))
         ui.instance[cmd](arg);
     },
 
@@ -71,35 +79,15 @@ $.widget('ui.rayWorkspace', {
 
      },
 
-    // New buffer
-    enew: function() {
-
-//      var ui = this;
-//      var w  = $('.ui-ray-workspace-window.active');
-//      console.log('aaa', w);
-//      if (!w.get(0)) {
-//          console.log('asti');
-//          w = $('<div class="ui-ray-workspace-window active" />').appendTo('.ui-ray-workspace.active');
-//      }
-//      ui._initializeEditor(w);
-    },
-    // Delete buffer
-    bd: function() {},
-    // Next buffer
-    bn: function() {},
-    // Previous buffer
-    bp: function() {},
-    // Write buffer
-    w: function(ws) {},
-    ls: function() {
-        //this._buffers_apply(console.log);
-    },
 });
 
 
-$.ui.rayWorkspace.defaults = {
-    layouts: [],
-};
+$.extend($.ui.rayWorkspace, {
+    getter: 'get_workspace',
+    defaults: {
+        layouts: [],
+    },
+});
 
 $.ui.rayWorkspace.defaults.layouts.push({
     title: 'One full screen pane',
