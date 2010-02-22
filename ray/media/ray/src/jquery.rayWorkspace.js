@@ -62,7 +62,7 @@ console.log('bbb');
                 
             },
             north: {
-                initClosed: true,
+                initClosed: false,
 //                initHidden: true,
                 resizable: false,
                 closable: true, 

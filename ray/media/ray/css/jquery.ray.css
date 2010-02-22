@@ -50,7 +50,7 @@ iframe {
 
 
 /* Buffers */
-.ui-ray-buffer-titlebar {
+.ui-ray-titlebar {
     background:none repeat scroll 0 0 #555;
     color:#ccc;
     font-size:12px;
@@ -59,13 +59,13 @@ iframe {
     font-family: Verdana,Arial,sans-serif; 
     height:15px;
 }
-.ui-ray-buffer-toolbar {
+.ui-ray-toolbar {
     padding:2px 4px!important;
 }
 
 
 /* Settings */
-.ui-ray-buffer-settings {
+.ui-ray-settings {
     background:none repeat scroll 0 0 #ddd;
     border-bottom:1px solid #bbb;
     position:absolute;
@@ -185,7 +185,7 @@ dl a {
     height:18px;
     width:22px;
 }
-.ui-ray-buffer-cursorinfo {
+.ui-ray-cursorinfo {
     float:right;
     color:#ddd;
     padding:2px 10px;
