@@ -288,8 +288,22 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
     _save_state: function() {
         var ui = this;
         var bf = ui._active_editor.data('buffer');
+        var nc = ui.exec('getCode');
         if (bf) {
-            ui.buffers.set(bf.id, 'currentContent', ui.exec('getCode'));
+            if (!bf.modified) { // just be sure to compare only if necessary
+                if (nc !== bf.currentContent) {
+                    bf.modified = true;
+                }
+            }
+            bf.currentContent = nc;
+            var title = bf.file.path;
+                    console.log('blargh..', bf, bf.modified);
+            if (bf.modified) {
+                console.log('WAHT');
+                title = title + ' [+]';
+            }
+            ui.toolbar.title(title);
+//            ui.buffers.set(bf.id, 'currentContent', nc);
         }
     },
 
@@ -309,12 +323,14 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
         // Buffer has been loaded from cache
         // check if it has changed since last open
         if (!nbf.created) {
-            if (nbf.currentContent && nbf.currentContent !== file.content) {
+            if (nbf.modified) {
                 if (confirm('Warning: Local copy of "'+ file.path +'" has changed. Click "Ok" to keep local modification or click "Cancel" to reload the file and lose the modifications.')) {
                     ui.exec('setCode', nbf.currentContent);
                     ui._save_state();
                 }
                 else {
+                    nbf.modified = false;
+                    nbf.currentContent = file.content;
                     ui.exec('setCode', file.content);
                     ui._save_state();
                 }
@@ -329,7 +345,6 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
             ui.exec('setCode', file.content);
             ui._save_state();
         }
-        ui.toolbar.title(file.path)
     },
 
     // Create a new untitled/unsaved file
