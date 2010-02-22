@@ -267,7 +267,7 @@ $.plugin('ui.rayFilebrowser.context', $.extend($.ui.rayBase, {
     redraw: function () {
         var ui = this;
 
-        ui.dom.context.width(ui.dom.context.parent().width() - 1);
+        //ui.dom.context.width(ui.dom.context.parent().width() - 1);
 
 //        var pw = 0;
 //        var panes = ui.dom.panes.find('.ui-ray-filebrowser-pane');
