@@ -23,13 +23,18 @@ var rayBufferManager = function() {
         },
 
         // Creates a new buffer, takes file argument
+        // if no file is provided a blank/untitled 
+        // buffer will be created
         create: function (f) {
             var i = bm._inc = bm._inc + 1;
-            bm._buffers[i] = {
-                id: i, file: f, modified: false,
-                originalContent: f.content
+            var b = { 
+                id: i, 
+                file: f || false,
+                modified: false,
+                currentContent: f && f.content || false
             };
-            return bm._buffers[i];
+            bm._buffers[i] = b;
+            return b;
         },
 
         // Takes a files argument and return its associated buffer, if none exist
@@ -47,8 +52,19 @@ var rayBufferManager = function() {
             return buffer;
         },
 
+        set: function(b, k, v) {
+            var bf = this.get(b);
+            if (bf) {
+                bf[k] = v;
+                return v;
+            }
+            else {
+                return false;
+            }
+        },
+
         // Takes either a file or a id and returns the buffer associated with it
-        get: function (b) {
+        get: function(b) {
             return b.path && this.getByPath(b.file.path) || this.getById(b);
         },
 
@@ -87,49 +103,65 @@ var rayBufferManager = function() {
     };
 };
 
-$.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
-    _init: function() {
-        var ui = this;
-        var m, x, wrapper;
-        ui._modified = false;
-        ui.buffers = new rayBufferManager();
-        ui.options   = $.extend($.ui.rayMirrorEditor.defaults, ui.options); // What the ?!
-        
-        if (ui._not_first_run) {
-            ui.dom = {
-                button:   {},
-                toolbar:    $('<div class="ui-widget-header ui-helper-reset ui-helper-clearfix ui-ray-buffer-toolbar" />'),
-                cursorinfo: $('<span class="ui-ray-buffer-cursorinfo" />'),
-                titlebar:   $('<div class="ui-ray-buffer-titlebar" />'),
-                parserswitcher: $('<label class="ui-ray-syntax-selector">Syntax: <select /></label>'),
-                bufferswitcher: $('<label class="ui-ray-buffer-selector">Buffer: <select /></label>'),
-            };
+var rayLayouts = [
+];
 
-            ui._build_buttons(ui.dom.toolbar);
 
-            ui.options.cursorActivity = function() {
-                ui._trigger('cursorActivity');
-                ui._updateCursorInfo();
-            };
+var rayWindowManager = function() {
+    var ui = arguments[0];
+    var wm = this;
+    var wl = [];
+    var main = ui.element.rayWorkspace('getWorkspace', 'center');
+    var layout = rayLayouts[0];
 
-            ui.options.onChange = function() {
-               ui.options.parent.trigger($.Event({type:'changed'}));
-            };
-            ui.options.parent.one('changed.rayMirrorEditor', function(){
-                ui._modified = true;
-                ui.settitle();
-            });
+    return {
 
-            ui.options.initCallback = function(editor) {
-                ui._guess_parser();
-            };
+        render: function(){
+            if ($.isArray(layout.template)) {
+                $.each(layout.template, function(){
+                    main.append($(this)).layout();
+                });
+            }
+            else {
+                main.append($(layout.template)).layout();
+            }
+        },
+
+        getActive: function(){
+            return main;
+        },
+
+        load: function(buffer){
+            //var wn = this.getActive();
+            // TODO: multiple window support
+            var wn = $('.ui-layout-east');
+
+            this.setupEditor(wn);
+
+            //wn.data('mirror').exec('setCode', buffer.file.content);
+        },
+
+        setupEditor: function(parent) {
             
-            ui.element.rayWorkspace('load', 'north', [
-                ui.dom.cursorinfo, ui.dom.titlebar, ui.dom.toolbar
-            ]);
+            var textarea = $('<textarea style="width:100%;height:100px;" class="ui-ray-editor-buffer" />')
+                        .appendTo(parent).get(0);
+            
+            var editor = CodeMirror.replace(textarea);
+            parent.data('editor', editor);
+            parent.data('mirror', new CodeMirror(editor, ui.options));
 
+//            wrapper      = ui.options.parent.append(ui.textarea).height(ui.options.parent.height()-2);
+//
+
+                     
+        },
+                     
+        setup: function(buffer) {
+//            ui.element.rayWorkspace('load', 'north', [
+//                ui.dom.cursorinfo, ui.dom.titlebar, ui.dom.toolbar
+//            ]);
             ui.textarea  = $('<textarea style="width:100%;height:100px;" class="ui-ray-editor-buffer" />')
-            wrapper      = ui.options.parent.append(ui.textarea).height(101);
+            wrapper      = ui.options.parent.append(ui.textarea).height(ui.options.parent.height()-2);
             
             //ui.textarea.height(ui.options.parent.height()).parent().height(ui.options.parent.height());
 
@@ -156,56 +188,224 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
             }
 
             ui.element.rayWorkspace('exec', 'open', 'north');
+        },
+    };
+};
 
-            ui._trigger('redraw');
-            return ui.textarea;
+$.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
+    _init: function() {
+        var ui = this;
+        var m, x, wrapper;
+        ui.options   = $.extend($.ui.rayMirrorEditor.defaults, ui.options); // What the ?!
+        
+          //ui.options.parent.one('changed.rayMirrorEditor', function(){
+          //    ui._modified = true;
+          //    ui.settitle();
+          //});
+        ui.dom = {
+            button:   {},
+            toolbar:    $('<div class="ui-widget-header ui-helper-reset ui-helper-clearfix ui-ray-buffer-toolbar" />'),
+            cursorinfo: $('<span class="ui-ray-buffer-cursorinfo" />'),
+            titlebar:   $('<div class="ui-ray-buffer-titlebar" />'),
+            parserswitcher: $('<label class="ui-ray-syntax-selector">Syntax: <select /></label>'),
+            bufferswitcher: $('<label class="ui-ray-buffer-selector">Buffer: <select /></label>'),
+        };
+
+        ui.buffers = new rayBufferManager();
+        ui._setup_layout();
+
+        ui._build_buttons(ui.dom.toolbar);
+
+        // Setup known file types that should be handled
+        // with  rayMirrorEditor
+        $.each(ui.options.magic, function (i, m){
+            ui.element.ray('set_mime_type', {extension: i, type: this.widgetName, label: m.label, callback: 'file_open'});
+        });
+
+        ui.element.bind('contentLoaded', function (e){
+            ui.e(e.originalEvent.data)
+        });
+        
+        ui.options = $.extend(ui.options, {
+            cursorActivity: function() {
+                ui._trigger('cursorActivity');
+                ui._updateCursorInfo();
+            },
+
+            onChange: function() {
+                ui._save_state();
+                //ui.options.parent.trigger($.Event({type:'changed'}));
+            },
+
+            initCallback: function(editor) {
+                ui._guess_parser();
+            }
+        });
+    },
+
+    // Setup an editor inside a given HTML node
+    _setup_editor: function(parent) {
+        var ui  = this;
+        var tpl = '<textarea style="width:100%;" class="ui-ray-editor-buffer" />';
+        var el  = $(tpl).appendTo(parent).get(0);  // TODO: fix height problem with editor when filebrowser is open
+        var ed  = CodeMirror.replace(el);          // (double scrollbar with long buffers)
+        var mi  = new CodeMirror(ed, ui.options);
+
+        return parent.data({editor: ed, mirror: mi });
+    },
+
+    _setup_layout: function() {
+        var ui     = this;
+        var main   = $('body').rayWorkspace('getPane', 'center');
+        var layout = ui._get_layout();
+        var active = false;
+        // No template, means non-splitted buffers ..
+        if (!layout.template) {
+            active = main
         }
+        // Accept array of HTML chunks
         else {
-            ui._not_first_run = true;
-            $.each(ui.options.magic, function (i, m){
-                ui.element.ray('set_mime_type', {extension: i, type: this.widgetName, label: m.label, callback: 'file_open'});
+            if ($.isArray(layout.template)) {
+            $.each(layout.template, function(){
+                main.append($(this)).layout();
             });
-            ui.element.bind('contentLoaded', function (e){
-                ui.e(e.originalEvent.data)
-            });
+            }
+            // Or a simple string
+            else {
+                main.append($(layout.template)).layout();
+            }
+            active = maind.find('ui-layout-pane:first');
         }
+        active = ui._setup_editor(active);
 
+        ui._active_editor = active;
+    },
+
+    // Returns the currently selected layout
+    _get_layout: function() {
+        var ui = this;
+        try {
+            return ui.options.layouts[ui.options.layout];
+        }
+        catch (e) {
+            return false;
+        };
+    },
+
+    _save_state: function() {
+        var ui = this;
+        var bf = ui._active_editor.data('buffer');
+        if (bf) {
+            ui.buffers.set(bf.id, 'currentContent', ui.exec('getCode'));
+        }
     },
 
     // New buffer from file
     e: function(file) {
         var ui = this;
-        var bf = ui.buffers.getOrCreate(file);
+        var obf = ui._active_editor.data('buffer');
+        var nbf = ui.buffers.getOrCreate(file);
 
-        ui.render(bf);
+        // Replacing an open buffer, save its state first
+        if (obf) {
+            ui._save_state();
+        }
+        
+        ui._active_editor.data('buffer', nbf);
 
-        /*
-            if (win.data('buffer')) {
-                var nb = win.data('buffer'); // new buffer
-                var ob = ui._get_buffer_by_id(win.data('buffer').id); // old buffer
-                var history = nb.editor.rayMirrorEditor('exec', 'historySize');
-                if (history.redo !== 0 || history.undo !==0) {
-                    ob.file.content = nb.editor.rayMirrorEditor('exec', 'getCode');
-                    ob.modified = true;
+        // Buffer has been loaded from cache
+        // check if it has changed since last open
+        if (!nbf.created) {
+            
+            if (nbf.currentContent && nbf.currentContent !== file.content) {
+                if (confirm('Warning: Local copy of "'+ file.path +'" has changed. Click "Ok" to keep local modification or click "Cancel" to reload the file and lose the modifications.')) {
+                    ui.exec('setCode', nbf.currentContent);
+                    ui._save_state();
+                }
+                else {
+                    ui.exec('setCode', file.content);
+                    ui._save_state();
                 }
             }
+            else {
+                ui.exec('setCode', file.content);
+            }
+        }
+        // New buffer has been loaded from
+        // server
+        else {
+            ui.exec('setCode', file.content);
+            ui._save_state();
+        }
+
+        /*
+
+        // old buffer is present
+        if (obf) {
+            console.log(obf, file, obf.file.path == file.path);
+            // Reopening a file already opened
+            if (obf.file.path == file.path) {
+            }
+            if (obf.currentContent != file.content) {
+                console.log('OLD CONTENT FOUND');
+            }
+
+            ui._save_state();
+        }
+
+
+
+
+/*
+        //ui.buffers.save_state(bf, ui.exec('getCode'))
+
+        // buffer already opened, check if changed
+        if (!bf.created) {
+            if (bf.modified) {
+                if (confirm('Warning: Local copy of "'+ file.path +'" has changed. Click "Ok" to reload it and lose all changes or "Cancel" to keep local modifications intact.')) {
+                    ui.exec('setCode', file.content);
+                }
+                else {
+                    ui.exec('setCode', file.content);
+                }
+            }
+            
+        }
+
+        /*
+            if (bf.file.content != file.content && 
+                // TODO: translations support ..
+                confirm('Warning: File "'+ file.path +'" has changed since editing started. Click "Ok" to load the new file and overwrite any changes done or "Cancel" to keep the local version intact.')) {
+                ui.exec('setCode', file.content);
+            }
+            else {
+                ui.exec('setCode', bf.file.content); // reload local cache instead
+            }
+        }
+        else {
+            ui.exec('setCode', file.content);
+        }
+*/
+        /*
+        var history = nb.editor.rayMirrorEditor('exec', 'historySize');
+        if (history.redo !== 0 || history.undo !==0) {
+            ob.file.content = nb.editor.rayMirrorEditor('exec', 'getCode');
+            ob.modified = true;
         }
         */
     },
-    // New buffer
-    enew: function() {
 
-//      var ui = this;
-//      var w  = $('.ui-ray-workspace-window.active');
-//      console.log('aaa', w);
-//      if (!w.get(0)) {
-//          console.log('asti');
-//          w = $('<div class="ui-ray-workspace-window active" />').appendTo('.ui-ray-workspace.active');
-//      }
-//      ui._initializeEditor(w);
+    // Create a new untitled/unsaved file
+    enew: function() {
+        var ui = this;
+        var bf = ui.buffers.create();
+
+        ui.workspace.load(bf);
     },
+
     // Delete buffer
-    bd: function() {},
+    bd: function(b) {
+    },
     // Next buffer
     bn: function() {},
     // Previous buffer
@@ -220,7 +420,6 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
         var ws = ui.element.rayWorkspace('getWorkspace', 'center');
         
         buf.editor = ui.element.rayMirrorEditor({
-            content: buf.file.content || '',
             parent: ws,
 //            file: file
         });
@@ -236,9 +435,7 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
     setbufferlist: function(buffers) {
         var ui = this;
         var select = ui.dom.bufferswitcher.find('select').empty();
-        console.log(buffers)
         for (var x in buffers) {
-            console.log('zzz ', buffers[x])
             var tt = buffers[x].file.path + (buffers[x].modified && ' [+]' || '');
             $('<option />').data('buffer', buffers[x])
                 .val(buffers[x].file.path).appendTo(select).text(tt);
@@ -260,8 +457,13 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
         document.title = tt;
     },
 
+    // Execute a CodeMirror command on the active editor
     exec: function(method, args) {
-        return this.mirror[method](args);
+        var ui = this;
+        if (ui._active_editor) {
+            var ed = ui._active_editor.data('mirror');
+            return ed[method](args);
+        }
     },
 
     togglespellcheck: function() {
@@ -415,6 +617,28 @@ $.extend($.ui.rayMirrorEditor, {
 //                stylesheet: ["css/xmlcolors.css", "css/jscolors.css", "css/csscolors.css", "css/djangocolors.css"] },
 
     },
+    layout: 0,
+    layouts: [
+                 
+        {label: 'Default', template: false},
+
+        {label: 'Two panes split vertically', template: [
+            '<div class="ui-layout-east" />', 
+            '<div class="ui-layout-west" />'
+        ]},
+
+        {label: 'Two panes split horizontally', template: [
+            '<div class="ui-layout-north" />', 
+            '<div class="ui-layout-south" />'
+        ]},
+
+        {label: 'Four panes', template: [
+            '<div class="ui-layout-north" />', 
+            '<div class="ui-layout-south" />',
+            '<div class="ui-layout-east" />',
+            '<div class="ui-layout-west" />',
+        ]}
+    ]
 }
 });
 

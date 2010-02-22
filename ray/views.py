@@ -88,7 +88,7 @@ def get_secure_path(p):
 
 def ray_browse(request):
     '''
-    TODO: document
+    TODO: document, return also node permissions (to know if it's read/write)
     '''
     if 'path' in request.GET:
         base_path = request.GET['path']

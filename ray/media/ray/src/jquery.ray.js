@@ -37,6 +37,7 @@ $.ui.rayBase = {
             plugin = widget.plugins[x];
             opt = $.extend((this.options[plugin] || {}), {widget: this});
             wdg = (wn != 'ray') && this.widgetName +'_'+ plugin || plugin.split(':')[0];
+            console.log(wdg);
             $(ui.element)[wdg](opt);
             $(ui.element)[wdg]('plugin_init');
         }
@@ -241,7 +242,8 @@ $.extend($.ui.ray, {
     },
     // List of plugins (ex: "ns:rayPluginName<:lazy>", where ns refers to the namespace)
     // Lazy means that the plugin is not initialized upon initial load.
-    plugins: ['rayMirrorEditor', 'rayWorkspace', 'rayFilebrowser'],//, 'rayPixlr'],
+    // ORDER DOES MATTER
+    plugins: ['rayWorkspace', 'rayFilebrowser', 'rayMirrorEditor'],//, 'rayPixlr'],
 });
 
 $(function(){
