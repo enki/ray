@@ -104,61 +104,45 @@ var rayBufferManager = function() {
 };
 
 
-var rayWindowManager = function() {
-    var ui = arguments[0];
-    var wm = this;
-    var wl = [];
-    var main = ui.element.rayWorkspace('getPane', 'center');
-    var layout = rayLayouts[0];
-
-    return {
-                     
-        setup: function(buffer) {
-//            ui.element.rayWorkspace('load', 'north', [
-//                ui.dom.cursorinfo, ui.dom.titlebar, ui.dom.toolbar
-//            ]);
-            
-            //ui.textarea.height(ui.options.parent.height()).parent().height(ui.options.parent.height());
-
-            
-            var div = $('<div style="float:right;" />').appendTo(ui.dom.toolbar);
-
-            var s = ui.dom.parserswitcher.appendTo(div)
-                        .find('select').bind('change', function(){ 
-                              ui.setparser($(':selected', this).data('magic').parser);
-                            });
-
-            var b = ui.dom.bufferswitcher.appendTo(div)
-                        .find('select').bind('change', function(){ 
-                            ui.element.rayWorkspace('e', $(':selected', this).data('buffer').file);
-                        });
-
-            for (x in ui.options.magic) {
-                // Add Syntax item to syntax selector
-                $('<option>').data('magic', ui.options.magic[x])
-                    .val(x).text(ui.options.magic[x].label)
-                    .appendTo(s);
-            }
-
-            ui.element.rayWorkspace('exec', 'open', 'north');
-        },
-    };
-};
-
-
 var rayToolbarManager = function(el) {
     var tb = this;
-    console.log(el);
     tb.dom = {
-        titlebar: $('<div class="ui-ray-titlebar" />'),
+        titlebar:   $('<div class="ui-ray-titlebar" />'),
         toolbar:    $('<div class="ui-widget-header ui-helper-reset ui-helper-clearfix ui-ray-toolbar" />'),
         cursorinfo: $('<span class="ui-ray-cursorinfo" />'),
-        button:   {},
+        parserswitcher: $('<label class="ui-ray-syntax-selector">Syntax: <select /></label>'),
+        bufferswitcher: $('<label class="ui-ray-buffer-selector">Buffer: <select /></label>'),
+        button:     {},
+        rightset:   $('<div style="float:right;" />'),
     };
-    
+
+    tb.dom.rightset.append(tb.dom.bufferswitcher, tb.dom.parserswitcher)
+        .appendTo(tb.dom.toolbar);
+
     tb.el = el.append(tb.dom.cursorinfo, tb.dom.titlebar, tb.dom.toolbar);
 
     return {
+        // Add Syntax items to syntax selector
+        setParsers: function(parsers) {
+            var s = tb.dom.parserswitcher.find('select');
+            for (var x in parsers) {
+                console.log(parsers[x]);
+                $('<option>').data('magic', parsers[x])
+                    .val(x).text(parsers[x].label)
+                    .appendTo(s);
+            }
+                    
+        },
+
+        setParser: function(parser) {
+            $.each(tb.dom.parserswitcher.find('option'), function() {
+                var magic = $(this).data('magic');
+                if (magic.parser == parser) {
+                    $(this).attr('selected', true).siblings().attr('selected', false);
+                } 
+            });
+        },
+
         get: function(el) {
             try {
                 return tb.dom[el];
@@ -191,23 +175,20 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
     _init: function() {
         var ui = this;
         var m, x, wrapper;
-        ui.options   = $.extend($.ui.rayMirrorEditor.defaults, ui.options); // What the ?!
-        
-          //ui.options.parent.one('changed.rayMirrorEditor', function(){
-          //    ui._modified = true;
-          //    ui.settitle();
-          //});
-        ui.dom = {
-            parserswitcher: $('<label class="ui-ray-syntax-selector">Syntax: <select /></label>'),
-            bufferswitcher: $('<label class="ui-ray-buffer-selector">Buffer: <select /></label>'),
-        };
+
+        ui.options = $.extend($.ui.rayMirrorEditor.defaults, ui.options); // What the ?!
+        ui.buffers = new rayBufferManager();
         
         ui._setup_layout();
 
-        ui.buffers = new rayBufferManager();
+        // Setup toolbar 
         ui.toolbar = new rayToolbarManager(ui.element.rayWorkspace('getPane', 'north'));
         ui._build_buttons(ui.toolbar.get('toolbar'));
+        ui.toolbar.setParsers(ui.options.magic);
 
+        ui.toolbar.get('parserswitcher').find('select').bind('change', function(){ 
+            ui.setparser($(':selected', this).data('magic').parser);
+        });
 
         // Setup known file types that should be handled
         // with  rayMirrorEditor
@@ -297,9 +278,7 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
             }
             bf.currentContent = nc;
             var title = bf.file.path;
-                    console.log('blargh..', bf, bf.modified);
             if (bf.modified) {
-                console.log('WAHT');
                 title = title + ' [+]';
             }
             ui.toolbar.title(title);
@@ -345,14 +324,25 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
             ui.exec('setCode', file.content);
             ui._save_state();
         }
+        ui._guess_parser(ui._get_file_extension(file.path));
     },
 
     // Create a new untitled/unsaved file
     enew: function() {
         var ui = this;
-        var bf = ui.buffers.create();
+        var obf = ui._active_editor.data('buffer');
+        var nbf = ui.buffers.create();
 
-        ui.workspace.load(bf);
+        // Replacing an open buffer, save its state first
+        if (obf) {
+            ui._save_state();
+        }
+
+        
+        nbf.file = {path: 'Untitled'};
+        ui._active_editor.data('buffer', nbf);
+        ui._save_state();
+        ui.exec('setCode', '');
     },
 
     // Delete buffer
@@ -393,20 +383,6 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
                 .val(buffers[x].file.path).appendTo(select).text(tt);
         }
     
-    },
-
-    settitle: function(i) {
-        var ui = this;
-        var tt = i || ui.dom.titlebar.text();
-        if (ui._modified) {
-            tt = tt + ' [+]';
-        }
-        else {
-            tt = tt.replace(' [+]', '');
-        }
-        //ui.dom.titlebar.text(tt);
-
-        document.title = tt;
     },
 
     // Execute a CodeMirror command on the active editor
@@ -475,21 +451,15 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
     
     setparser: function(parser){
         var ui = this;
-        $.each(ui.dom.parserswitcher.find('option'), function() {
-            var magic = $(this).data('magic');
-            if (magic.parser == parser) {
-                $(this).attr('selected', true).siblings().attr('selected', false);
-            } 
-        });
+        ui.toolbar.setParser(parser);
         ui.exec('setParser', parser);
     },
 
-    _guess_parser: function() {
+    _guess_parser: function(ext) {
         var ui  = this;
-//        var ext = ui.options.file.path.match(/\w+$/);
-        var ext = 'html';
-        if (ext[0] && ui.options.magic[ext[0].toLowerCase()]) {
-            return ui.setparser(ui.options.magic[ext[0]].parser);
+        ext = ext || 'html';
+        if (ext && ui.options.magic[ext.toLowerCase()]) {
+            return ui.setparser(ui.options.magic[ext].parser);
         }
         return ui.setparser('DummyParser');
     }
