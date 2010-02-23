@@ -1,41 +1,4 @@
 $.widget('ui.rayWorkspace', {
-
-    load: function (ws, content) {
-        var ui = this;
-        if ($.isArray(content)) {
-            $.each(content, function (){
-                ui.dom[ws].append(this);
-            });
-        }
-        else {
-            ui.dom[ws].html(content);
-        }
-    },
-
-    getPane: function(ws) {
-        try {
-            return this.dom[ws];
-        }
-        catch (e) {
-            return false;
-        }
-    },
-
-    exec: function(cmd, arg) {
-        var ui = this;
-        ui.instance[cmd](arg);
-    },
-
-    layout: function () {
-        if (arguments.length > 1) {
-            var pane = this.dom[arguments[0]];
-            $.each(arguments[1], function (){
-                pane.append(this);
-            });
-            pane.layout(arguments[2] || {});
-        }
-    },
-
     _init: function() {
         var ui = this;
         ui.dom = {
@@ -75,6 +38,42 @@ $.widget('ui.rayWorkspace', {
         test = ui.instance;
 
      },
+
+    load: function (ws, content) {
+        var ui = this;
+        if ($.isArray(content)) {
+            $.each(content, function (){
+                ui.dom[ws].append(this);
+            });
+        }
+        else {
+            ui.dom[ws].html(content);
+        }
+    },
+
+    getPane: function(ws) {
+        try {
+            return this.dom[ws];
+        }
+        catch (e) {
+            return false;
+        }
+    },
+
+    exec: function(cmd, arg) {
+        var ui = this;
+        ui.instance[cmd](arg);
+    },
+
+    layout: function () {
+        if (arguments.length > 1) {
+            var pane = this.dom[arguments[0]];
+            $.each(arguments[1], function (){
+                pane.append(this);
+            });
+            pane.layout(arguments[2] || {});
+        }
+    }
 
 });
 

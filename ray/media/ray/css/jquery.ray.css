@@ -17,11 +17,11 @@ iframe {
     display: block;
     background:#f4f4f4;
 }
-#ray-toolbar {
-    margin:0;
-    border:1px solid #999;
-    border-width:1px 0;
-    padding:0.3em;
+.ui-ray-toolbar label {
+    font-family:Verdana, Arial, sans-serif;
+    font-size:110%;
+    font-weight:normal;
+
 }
 /*
 .ray-toolbar ul {
@@ -52,7 +52,7 @@ iframe {
 /* Buffers */
 .ui-ray-titlebar {
     background:none repeat scroll 0 0 #555;
-    color:#ccc;
+    color:#ddd;
     font-size:12px;
     padding:4px 6px;
     font-weight:bold;
@@ -60,9 +60,14 @@ iframe {
     height:15px;
 }
 .ui-ray-toolbar {
-    padding:2px 4px!important;
+    padding:4px 4px!important;
 }
-
+.ui-ray-toolbar .ui-button {
+    height:22px!important;
+}
+.ui-ray-toolbar .ui-button-text {
+    height:22px!important;
+}
 
 /* Settings */
 .ui-ray-settings {

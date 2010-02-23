@@ -281,7 +281,6 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
                 title = title + ' [+]';
             }
             ui.toolbar.title(title);
-//            ui.buffers.set(bf.id, 'currentContent', nc);
         }
     },
 
@@ -324,6 +323,7 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
             ui._save_state();
         }
         ui._guess_parser(ui._get_file_extension(file.path));
+        ui.setbufferlist(ui.buffers.all());
     },
 
     // Create a new untitled/unsaved file
@@ -336,7 +336,6 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
         if (obf) {
             ui._save_state();
         }
-
         
         nbf.file = {path: 'Untitled'};
         ui._active_editor.data('buffer', nbf);
@@ -356,26 +355,13 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
     ls: function() {
         //this._buffers_apply(console.log);
     },
-    render: function (buf) {
-        var ui = this;
-        var ws = ui.element.rayWorkspace('getPane', 'center');
-        
-        buf.editor = ui.element.rayMirrorEditor({
-            parent: ws,
-//            file: file
-        });
-//         buf.editor.rayMirrorEditor('setbufferlist', ui.buffers.all());
-//            var title = (buf && buf.modified) && file.path +' [+]' || file.path;
-//
-//            buf.editor.rayMirrorEditor('settitle', title);
-//            win.one('changed.rayWorkspace', function(){
-//                buff.modified = true;
-//            });
-    },
 
+    /* Updates the buffer select input with
+     * the current buffer list
+     * */
     setbufferlist: function(buffers) {
         var ui = this;
-        var select = ui.dom.bufferswitcher.find('select').empty();
+        var select = ui.toolbar.get('bufferswitcher').find('select').empty();
         for (var x in buffers) {
             var tt = buffers[x].file.path + (buffers[x].modified && ' [+]' || '');
             $('<option />').data('buffer', buffers[x])
