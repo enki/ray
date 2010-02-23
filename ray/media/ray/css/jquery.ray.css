@@ -23,6 +23,9 @@ iframe {
     font-weight:normal;
 
 }
+.ui-ray-toolbar label select {
+    font-size:90%;
+}
 /*
 .ray-toolbar ul {
     margin:0;
@@ -170,29 +173,12 @@ dl a {
 .editbox {
     font-family:monospace;
 }
-#ray-toolbar {
-    border-top:0;
-}
-#ray-toolbar .ui-ray-pathinfo {
-    font-weight:normal;
-    color:#555;
-    margin-left:8px;
-    padding:1px 0 0 0;
-    display:block;
-    float:left;
-}
-#ray-toolbar .ui-button-set {
-    float:right;
-}
-#ray-toolbar .ui-button {
-    height:18px;
-    width:22px;
-}
 .ui-ray-cursorinfo {
     float:right;
     color:#ddd;
     padding:2px 10px;
     font-size:150%;
+    font-family:Verdana, Arial, sans-serif;
 }
 .ui-ray-syntax-selector {
     float:right;
@@ -205,22 +191,6 @@ dl a {
 .ui-layout-east {
     padding:0!important;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /* --- rayFilebrowser -------------------- */

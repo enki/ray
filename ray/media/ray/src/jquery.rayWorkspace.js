@@ -51,6 +51,15 @@ $.widget('ui.rayWorkspace', {
         }
     },
 
+    get: function(k) {
+         try {
+             return this.instance[k];
+         }
+         catch (e) {
+             return false;
+         };
+    },
+
     getPane: function(ws) {
         try {
             return this.dom[ws];
@@ -62,7 +71,7 @@ $.widget('ui.rayWorkspace', {
 
     exec: function(cmd, arg) {
         var ui = this;
-        ui.instance[cmd](arg);
+        return ui.instance[cmd](arg);
     },
 
     layout: function () {
@@ -79,7 +88,7 @@ $.widget('ui.rayWorkspace', {
 
 
 $.extend($.ui.rayWorkspace, {
-    getter: 'getWorkspace',
+    getter: 'getWorkspace exec',
     defaults: {
         layouts: [],
     },

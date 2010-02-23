@@ -323,7 +323,7 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
             ui._save_state();
         }
         ui._guess_parser(ui._get_file_extension(file.path));
-        ui.setbufferlist(ui.buffers.all());
+        ui.updateBufferList();
     },
 
     // Create a new untitled/unsaved file
@@ -341,6 +341,7 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
         ui._active_editor.data('buffer', nbf);
         ui._save_state();
         ui.exec('setCode', '');
+        ui.updateBufferList();
     },
 
     // Delete buffer
@@ -356,18 +357,36 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
         //this._buffers_apply(console.log);
     },
 
-    /* Updates the buffer select input with
-     * the current buffer list
+    /* Updates the buffer select input with the current
+     * buffer list (can accept an alternate buffer list)
      * */
-    setbufferlist: function(buffers) {
+    updateBufferList: function() {
         var ui = this;
         var select = ui.toolbar.get('bufferswitcher').find('select').empty();
+        var buffers = arguments[0] || ui.buffers.all();
         for (var x in buffers) {
             var tt = buffers[x].file.path + (buffers[x].modified && ' [+]' || '');
             $('<option />').data('buffer', buffers[x])
                 .val(buffers[x].file.path).appendTo(select).text(tt);
         }
     
+    },
+
+    toggleFilebrowser: function(e) {
+        var ui = this;
+        console.log('south', ui.element.rayWorkspace('getPane', 'south'));
+        var state  = ui.element.rayWorkspace('get', 'state');
+        var button = $(e.currentTarget);
+
+        if (state.south.isVisible) {
+            ui.element.rayWorkspace('exec', 'hide', 'south');
+            button.find('.ui-icon').removeClass('ui-icon-folder-open').addClass('ui-icon-folder-collapsed');
+        }
+        else {
+            ui.element.rayWorkspace('exec', 'show', 'south');
+            button.find('.ui-icon').removeClass('ui-icon-folder-collapsed').addClass('ui-icon-folder-open');
+        }
+                       
     },
 
     // Execute a CodeMirror command on the active editor
@@ -492,6 +511,11 @@ $.extend($.ui.rayMirrorEditor, {
             "contrib/django/css/djangocolors.css", 
         ],
         buttons: [
+            ['editor-options', 
+                {label: 'Browse', icon: 'folder-open', callback: 'toggleFilebrowser'}, 
+                {label: 'New file', icon: 'document', callback: 'new_fiew'}, 
+                {label: 'Save', icon: 'disk', callback: 'save'}, 
+            ],
             ['editing-options', 
                 {label: 'Undo', icon: 'arrowreturn-1-w', callback: 'undo'}, 
                 {label: 'Redo', icon: 'arrowreturn-1-e', callback: 'redo'}
