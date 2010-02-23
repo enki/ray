@@ -126,7 +126,6 @@ var rayToolbarManager = function(el) {
         setParsers: function(parsers) {
             var s = tb.dom.parserswitcher.find('select');
             for (var x in parsers) {
-                console.log(parsers[x]);
                 $('<option>').data('magic', parsers[x])
                     .val(x).text(parsers[x].label)
                     .appendTo(s);

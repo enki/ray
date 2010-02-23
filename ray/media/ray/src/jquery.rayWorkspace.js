@@ -13,7 +13,6 @@ $.widget('ui.rayWorkspace', {
     },
 
     getPane: function(ws) {
-    console.log('aa', this, ws, this.dom);
         try {
             return this.dom[ws];
         }
@@ -40,14 +39,12 @@ $.widget('ui.rayWorkspace', {
     _init: function() {
         var ui = this;
         ui.dom = {
-//            workspace: $($.ui.rayWorkspace.defaults.layouts[0].template.join('')).prependTo('body'),
             center: $('<div class="ui-layout-center" />').appendTo('body'),
             north:  $('<div class="ui-layout-north" />').appendTo('body'),
             south:  $('<div class="ui-layout-south" />').appendTo('body'),
             east:   $('<div class="ui-layout-east" />').appendTo('body'),
             west:   $('<div class="ui-layout-west" />').appendTo('body'),
         };
-console.log('bbb');
         var h = window.innerHeight;
         ui.instance = ui.element.layout({
             defaults: {
@@ -63,7 +60,6 @@ console.log('bbb');
             },
             north: {
                 initClosed: false,
-//                initHidden: true,
                 resizable: false,
                 closable: true, 
                 size:56,

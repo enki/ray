@@ -37,7 +37,6 @@ $.ui.rayBase = {
             plugin = widget.plugins[x];
             opt = $.extend((this.options[plugin] || {}), {widget: this});
             wdg = (wn != 'ray') && this.widgetName +'_'+ plugin || plugin.split(':')[0];
-            console.log(wdg);
             $(ui.element)[wdg](opt);
             $(ui.element)[wdg]('plugin_init');
         }
@@ -190,9 +189,6 @@ $.widget('ui.ray', $.extend($.ui.rayBase, {
                 }
             });
         }
-    },
-    file_test: function(file) {
-        console.log('aa', file);           
     },
 
     /* Request a file content to the backend and trigger a 
