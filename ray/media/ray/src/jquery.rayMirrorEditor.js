@@ -513,7 +513,7 @@ $.extend($.ui.rayMirrorEditor, {
         buttons: [
             ['editor-options', 
                 {label: 'Browse', icon: 'folder-open', callback: 'toggleFilebrowser'}, 
-                {label: 'New file', icon: 'document', callback: 'new_fiew'}, 
+                {label: 'New file', icon: 'document', callback: 'enew'}, 
                 {label: 'Save', icon: 'disk', callback: 'save'}, 
             ],
             ['editing-options', 
