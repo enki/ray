@@ -156,7 +156,7 @@ $.widget('ui.rayFilebrowser', $.extend($.ui.rayBase, {
     contextMenu: function() {
         return [
             {label: 'Edit', className: 'edit' },
-            {separator: true},
+    //        {separator: true},
             {label: 'Copy', className: 'copy' },
             {label: 'Cut', className: 'cut'},
             {label: 'Paste', className: 'paste'},
@@ -194,98 +194,98 @@ $.ui.rayFilebrowser = {
  * (right click menu)
  * */
 
-$.plugin('ui.rayFilebrowser.contextMenu', $.extend($.ui.rayBase, {
-    _init: function() {
-        var ui = this;
-        
-
-       	$('<ul id="ui-rayFilebrowser-contextMenu" class="contextMenu" />').hide().appendTo('body');
-//          <li class="edit"><a href="#edit">Edit</a></li><li class="cut separator"><a href="#cut">Cut</a></li><li class="copy"><a href="#copy">Copy</a></li><li class="paste"><a href="#paste">Paste</a></li><li class="delete"><a href="#delete">Delete</a></li><li class="quit separator"><a href="#quit">Quit</a></li></ul>');
-        ui.element.bind('dirOpened.rayFilebrowser_contextMenu', function(e){
-            $('a.file, a.dir').parents('li').contextMenu({
-                menu: 'ui-rayFilebrowser-contextMenu'
-            },
-                function(action, el, pos) {
-                alert(
-                    'Action: ' + action + '\n\n' +
-                    'Element ID: ' + el + '\n\n' + 
-                    'X: ' + pos.x + '  Y: ' + pos.y + ' (relative to element)\n\n' + 
-                    'X: ' + pos.docX + '  Y: ' + pos.docY+ ' (relative to document)'
-                    );
-            });
-        });
-        /*
-        */
-    },
-    _menu_item: function() {
-        var link = $('<a />').text(label);
-        return $('<li />').append(link);
-    },
-}));
-
-/* Gives basic contextual information on selected 
- * file or directory
- * */
-
-$.plugin('ui.rayFilebrowser.context', $.extend($.ui.rayBase, {
-    _init: function() {
-        var ui = this;
-        ui.dom = ui.options.widget.dom;
-        ui.dom.contextTabs = $('<div id="ui-ray-filebrowser-context-tabs"><ul /></div>');
-        ui.dom.context = $('<div class="ui-ray-filebrowser-context" />')
-                            .appendTo(ui.dom.leftpane).append(ui.dom.contextTabs).tabs({
-                                load: function (e, data){
-                                    data.path = ui._path;
-                                    ui._trigger('contextLoaded', data);
-                                }
-                            });
-        
-        ui.element.bind('fileSelected.rayFilebrowser_context, dirSelected.rayFilebrowser_context', function(e){
-            ui.context(e.originalEvent.data.path.replace('?path=', ''));
-        });
-        
-        ui.element.bind('redraw.rayFilebrowser_context', function(e){
-            ui.redraw();
-        });
-
-        // TODO: fix dirty hack
-        setTimeout(function(){
-            ui.context($('a.dir, a.file').attr('href').replace('?path=', ''));
-        }, 200);
-    },
-    context: function (p, tab) {
-        var ui  = this;
-        var url = '/ray/context/?path=';
-        if (ui.dom.context.tabs('length') > 0) {
-            ui.dom.context.tabs('url', tab || 0, url + p).tabs('load', tab || 0);
-        }
-        else {
-            ui.dom.context.tabs('add', url + p, 'General', tab || 0);
-        }
-        ui._path = p;
-    },
-    redraw: function () {
-        var ui = this;
-
-        //ui.dom.context.width(ui.dom.context.parent().width() - 1);
-
-//        var pw = 0;
-//        var panes = ui.dom.panes.find('.ui-ray-filebrowser-pane');
-
-
-//        panes.each(function(){ pw = pw + $(this).width(); });
-//      ui.dom.panes.width(pw + panes.length);
-//      ui.dom.context
-//              .css({
-//                  marginLeft: pw,
-//                  width: ui.dom.filebrowser.width() - (pw + panes.length) - 18,
-//                  height:  ui.dom.filebrowser.height() - 40
-//              });
-
-//        ui.dom.context.find('.ui-tabs-panel ').height(50);
-
-//        ui.dom.filebrowser.find('.ui-rayFilebrowser-context .ui-tabs-panel')
-//                .height(ui.dom.filebrowser.height() - 40);
-    }
-}));
+//$.plugin('ui.rayFilebrowser.contextMenu', $.extend($.ui.rayBase, {
+//    _init: function() {
+//        var ui = this;
+//        
+//
+//       	$('<ul id="ui-rayFilebrowser-contextMenu" class="contextMenu" />').hide().appendTo('body');
+////          <li class="edit"><a href="#edit">Edit</a></li><li class="cut separator"><a href="#cut">Cut</a></li><li class="copy"><a href="#copy">Copy</a></li><li class="paste"><a href="#paste">Paste</a></li><li class="delete"><a href="#delete">Delete</a></li><li class="quit separator"><a href="#quit">Quit</a></li></ul>');
+//        ui.element.bind('dirOpened.rayFilebrowser_contextMenu', function(e){
+//            $('a.file, a.dir').parents('li').contextMenu({
+//                menu: 'ui-rayFilebrowser-contextMenu'
+//            },
+//                function(action, el, pos) {
+//                alert(
+//                    'Action: ' + action + '\n\n' +
+//                    'Element ID: ' + el + '\n\n' + 
+//                    'X: ' + pos.x + '  Y: ' + pos.y + ' (relative to element)\n\n' + 
+//                    'X: ' + pos.docX + '  Y: ' + pos.docY+ ' (relative to document)'
+//                    );
+//            });
+//        });
+//        /*
+//        */
+//    },
+//    _menu_item: function() {
+//        var link = $('<a />').text(label);
+//        return $('<li />').append(link);
+//    },
+//}));
+//
+///* Gives basic contextual information on selected 
+// * file or directory
+// * */
+//
+//$.plugin('ui.rayFilebrowser.context', $.extend($.ui.rayBase, {
+//    _init: function() {
+//        var ui = this;
+//        ui.dom = ui.options.widget.dom;
+//        ui.dom.contextTabs = $('<div id="ui-ray-filebrowser-context-tabs"><ul /></div>');
+//        ui.dom.context = $('<div class="ui-ray-filebrowser-context" />')
+//                            .appendTo(ui.dom.leftpane).append(ui.dom.contextTabs).tabs({
+//                                load: function (e, data){
+//                                    data.path = ui._path;
+//                                    ui._trigger('contextLoaded', data);
+//                                }
+//                            });
+//        
+//        ui.element.bind('fileSelected.rayFilebrowser_context, dirSelected.rayFilebrowser_context', function(e){
+//            ui.context(e.originalEvent.data.path.replace('?path=', ''));
+//        });
+//        
+//        ui.element.bind('redraw.rayFilebrowser_context', function(e){
+//            ui.redraw();
+//        });
+//
+//        // TODO: fix dirty hack
+//        setTimeout(function(){
+//            ui.context($('a.dir, a.file').attr('href').replace('?path=', ''));
+//        }, 200);
+//    },
+//    context: function (p, tab) {
+//        var ui  = this;
+//        var url = '/ray/context/?path=';
+//        if (ui.dom.context.tabs('length') > 0) {
+//            ui.dom.context.tabs('url', tab || 0, url + p).tabs('load', tab || 0);
+//        }
+//        else {
+//            ui.dom.context.tabs('add', url + p, 'General', tab || 0);
+//        }
+//        ui._path = p;
+//    },
+//    redraw: function () {
+//        var ui = this;
+//
+//        //ui.dom.context.width(ui.dom.context.parent().width() - 1);
+//
+////        var pw = 0;
+////        var panes = ui.dom.panes.find('.ui-ray-filebrowser-pane');
+//
+//
+////        panes.each(function(){ pw = pw + $(this).width(); });
+////      ui.dom.panes.width(pw + panes.length);
+////      ui.dom.context
+////              .css({
+////                  marginLeft: pw,
+////                  width: ui.dom.filebrowser.width() - (pw + panes.length) - 18,
+////                  height:  ui.dom.filebrowser.height() - 40
+////              });
+//
+////        ui.dom.context.find('.ui-tabs-panel ').height(50);
+//
+////        ui.dom.filebrowser.find('.ui-rayFilebrowser-context .ui-tabs-panel')
+////                .height(ui.dom.filebrowser.height() - 40);
+//    }
+//}));
 

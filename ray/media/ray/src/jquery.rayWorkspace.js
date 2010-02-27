@@ -2,41 +2,41 @@ $.widget('ui.rayWorkspace', {
     _init: function() {
         var ui = this;
         ui.dom = {
-            center: $('<div class="ui-layout-center" />').appendTo('body'),
-            north:  $('<div class="ui-layout-north" />').appendTo('body'),
-            south:  $('<div class="ui-layout-south" />').appendTo('body'),
-            east:   $('<div class="ui-layout-east" />').appendTo('body'),
-            west:   $('<div class="ui-layout-west" />').appendTo('body'),
+            primary:   $('<div>head</div>'),
+            secondary: $('<div>body</div>'),
         };
+
+        ui.dom.primary.height(100).appendTo('body');
+        ui.dom.secondary.height(100).appendTo('body')
+
         var h = window.innerHeight;
-        ui.instance = ui.element.layout({
+        var w = window.innerWidth;
+        $('body').splitter({
+            type: 'h',
+            minBottom: 150,
+            resizeToWidth: true,
+        })
+        /*
+        ui.instance = ui.dom.body.layout({
             defaults: {
                 fxName: "none",
             },
-            south:{
-                initClosed: false,
-                size: h - ((h * 1.61803399) - h),
-            },
-            center: {
-                initClosed: false,
-                
-            },
             north: {
-                initClosed: false,
-                resizable: false,
-                closable: true, 
-                size:56,
-                spacing_open: 0
+                size: '50%'
             },
-            west: {
-                initClosed: true,
-            },
-            east: {
-                initClosed: true,
+            south:{
+                size: '50%'
+                //size: h - ((h * 1.61803399) - h),
             }
+//          north: {
+//              resizable: false,
+//              closable: true, 
+//              size:56,
+//              spacing_open: 0
+//          }
         });
-        test = ui.instance;
-
+        */
+        
      },
 
     load: function (ws, content) {

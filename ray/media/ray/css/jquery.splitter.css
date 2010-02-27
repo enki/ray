@@ -1,0 +1,30 @@
+#ui-ray-editor {
+	border: 3px solid #669;
+	min-width: 500px;	/* Splitter can't be too thin ... */
+	min-height: 300px;	/* ... or too flat */
+	height: 100%;
+}
+#ui-ray-editor .Pane {
+	overflow: auto;
+	background: #def;
+}
+
+
+.vsplitbar {
+	width: 6px;
+	background: #669 url(../img/vgrabber.gif) no-repeat center;
+}
+.vsplitbar:hover, .vsplitbar.active {
+	background: #c66 url(../img/vgrabber.gif) no-repeat center;
+	opacity: 0.7;
+	filter: alpha(opacity=70); /* IE */
+}
+.hsplitbar {
+	height: 6px;
+	background: #669 url(../img/hgrabber.gif) no-repeat center;
+}
+.hsplitbar.active, .hsplitbar:hover {
+	background: #c66 url(../img/hgrabber.gif) no-repeat center;
+	opacity: 0.7;
+	filter: alpha(opacity=70); /* IE */
+}

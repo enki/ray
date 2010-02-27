@@ -17,6 +17,9 @@ iframe {
     display: block;
     background:#f4f4f4;
 }
+.ui-ray-body {
+    height:100%; 
+}
 .ui-ray-toolbar label {
     font-family:Verdana, Arial, sans-serif;
     font-size:110%;

@@ -1,7 +1,4 @@
 /* Django Ray Editor
- *
- * For the moment this is a general purpose editor for django
- * aimed at easing live template/static file edition.
  * */
 
 /* Creates a plugins, which is basically a widget
@@ -239,7 +236,7 @@ $.extend($.ui.ray, {
     // List of plugins (ex: "ns:rayPluginName<:lazy>", where ns refers to the namespace)
     // Lazy means that the plugin is not initialized upon initial load.
     // ORDER DOES MATTER
-    plugins: ['rayWorkspace', 'rayFilebrowser', 'rayMirrorEditor'],//, 'rayPixlr'],
+    plugins: ['rayWorkspace', ]//'rayFilebrowser', 'rayMirrorEditor'],//, 'rayPixlr'],
 });
 
 $(function(){

@@ -232,26 +232,36 @@ $.widget('ui.rayMirrorEditor', $.extend($.ui.rayBase, {
         var main   = $('body').rayWorkspace('getPane', 'center');
         var layout = ui._get_layout();
         var active = false;
+        var tpl    = '';
         // No template, means non-splitted buffers ..
         if (!layout.template) {
-            active = main
+            active = main;
         }
         // Accept array of HTML chunks
         else {
             if ($.isArray(layout.template)) {
-            $.each(layout.template, function(){
-                main.append($(this)).layout();
-            });
+                $.each(layout.template, function(i){
+                    main.append(layout.template[i]);
+                });
             }
             // Or a simple string
             else {
-                main.append($(layout.template)).layout();
+                main.append(layout.template);
             }
-            active = maind.find('ui-layout-pane:first');
+            console.log(layout.setup, main);
+            main.append(tpl).layout(layout.setup);
+//            console.log(main);
+//            main.find('.ui-layout-pane').each(function(){
+//                                              $(this).text('sti..');
+                                             console.log(this);
+//              ui._setup_editor(this);
+//            });
+            //active = main.find('ui-layout-pane:first');
         }
-        active = ui._setup_editor(active);
+//        console.log('aa', node.find('.ui-layout-pane'));
+//        console.log('active', active);
 
-        ui._active_editor = active;
+        //ui._active_editor = active;
     },
 
     // Returns the currently selected layout
@@ -544,27 +554,36 @@ $.extend($.ui.rayMirrorEditor, {
 //                stylesheet: ["css/xmlcolors.css", "css/jscolors.css", "css/csscolors.css", "css/djangocolors.css"] },
 
     },
-    layout: 0,
+    layout: 1,
     layouts: [
                  
         {label: 'Default', template: false},
 
         {label: 'Two panes split vertically', template: [
             '<div class="ui-layout-east" />', 
-            '<div class="ui-layout-west" />'
-        ]},
+            '<div class="ui-layout-center" />'
+        ], setup: {
+            defaults: {
+                fxName: "none",
+                size: '50%',     
+                initClosed: false,
+                resizable: false,
+                closable: true, 
+            }
+        }},
 
         {label: 'Two panes split horizontally', template: [
             '<div class="ui-layout-north" />', 
-            '<div class="ui-layout-south" />'
-        ]},
-
-        {label: 'Four panes', template: [
-            '<div class="ui-layout-north" />', 
-            '<div class="ui-layout-south" />',
-            '<div class="ui-layout-east" />',
-            '<div class="ui-layout-west" />',
-        ]}
+            '<div class="ui-layout-center" />'
+        ], setup: {
+            defaults: {
+                fxName: "none",
+                size: '50%',    
+                initClosed: false,
+                resizable: false,
+                closable: true, 
+            }
+        }}
     ]
 }
 });

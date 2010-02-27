@@ -147,3 +147,9 @@ def ray_editor(request):
     TODO: document
     '''
     return render_to_response('ray/editor.html')
+
+def ray_layout(request):
+    '''
+    TODO: document
+    '''
+    return render_to_response('ray/layout.html')
